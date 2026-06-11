@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Check Python and workflow JSON
+        run: |
+          python -m py_compile \
+            __init__.py \
+            nodes.py \
+            variation.py \
+            tests/test_variation.py \
+            tests/test_workflow.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          workflow = json.loads(
+              Path("workflows/anima_variation_batch_workflow.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert any(
+              node.get("type") == "AnimaVariationBatchSampler"
+              for node in workflow["nodes"]
+          )
+          print(
+              f"validated workflow with {len(workflow['nodes'])} nodes "
+              f"and {len(workflow['links'])} links"
+          )
+          PY
+
+      - name: Run unit tests
+        run: PYTHONPATH=. python -m unittest discover -s tests -v
+
+      - name: Build source archive
+        run: |
+          mkdir -p dist
+          git archive \
+            --format=zip \
+            --output="dist/comfyui-anima-variation-batch-${GITHUB_SHA::7}.zip" \
+            HEAD
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: comfyui-anima-variation-batch-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
