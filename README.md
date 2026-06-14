@@ -14,7 +14,8 @@ It:
 - assigns an independent sampling seed to every output;
 - samples and VAE-decodes sequentially to keep sampling VRAM close to a
   one-image workflow;
-- combines the finished images into one IMAGE batch for previewing and saving.
+- combines the finished images into one IMAGE batch for previewing and saving;
+- saves each execution as a PNG folder and one-click downloadable ZIP.
 
 The default is four images per execution. This is sequential generation inside
 one ComfyUI node, not a four-image GPU batch. Four outputs take roughly four
@@ -37,6 +38,23 @@ example_workflows/anima_variation_batch_workflow.json
 ```
 
 It is also exposed through ComfyUI's workflow templates browser.
+
+## Batch ZIP saving
+
+The example workflow uses `Anima Save Batch ZIP` instead of the standard
+`Save Image` node. With `auto_download` enabled, the entire batch downloads
+to the PC automatically after generation. The node also keeps a
+`Download ZIP` button for manual re-download.
+
+Files are stored in:
+
+```text
+output/anima_batches/YYYY-MM-DD/anima_batch_00001/
+output/anima_batches/YYYY-MM-DD/anima_batch_00001.zip
+```
+
+The ZIP contains every PNG plus `prompt_report.txt` with the selected tags,
+expanded prompts, and seeds. PNG workflow metadata is preserved.
 
 For the existing RunPod image, the ComfyUI installation is commonly found at
 one of:

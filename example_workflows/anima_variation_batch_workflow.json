@@ -2,7 +2,7 @@
   "id": "f7a250a1-53fb-496b-8c39-c60d9e764028",
   "revision": 1,
   "last_node_id": 56,
-  "last_link_id": 94,
+  "last_link_id": 95,
   "nodes": [
     {
       "id": 15,
@@ -311,7 +311,9 @@
           "name": "prompt_report",
           "type": "STRING",
           "slot_index": 1,
-          "links": null
+          "links": [
+            95
+          ]
         }
       ],
       "properties": {
@@ -331,14 +333,14 @@
     },
     {
       "id": 52,
-      "type": "SaveImage",
+      "type": "AnimaSaveBatchZip",
       "pos": [
         1270.0,
         260.0
       ],
       "size": [
-        210,
-        58
+        320,
+        110
       ],
       "flags": {},
       "order": 12,
@@ -348,16 +350,20 @@
           "name": "images",
           "type": "IMAGE",
           "link": 90
+        },
+        {
+          "name": "prompt_report",
+          "type": "STRING",
+          "link": 95
         }
       ],
       "outputs": [],
       "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.40",
-        "Node name for S&R": "SaveImage"
+        "Node name for S&R": "AnimaSaveBatchZip"
       },
       "widgets_values": [
-        "anima_variations"
+        "anima_batches/%year%-%month%-%day%/anima_batch",
+        true
       ]
     },
     {
@@ -615,6 +621,14 @@
       51,
       5,
       "ANIMA_VARIATION_GROUPS"
+    ],
+    [
+      95,
+      51,
+      1,
+      52,
+      1,
+      "STRING"
     ]
   ],
   "groups": [],

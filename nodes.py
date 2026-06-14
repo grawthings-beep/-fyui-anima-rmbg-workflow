@@ -1,10 +1,19 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
+import json
+import os
+
+import folder_paths
+import numpy as np
 import torch
+from comfy.cli_args import args
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 import comfy.samplers
 import nodes
 
+from .batch_archive import create_batch_zip
 from .variation import (
     add_variation_group,
     build_group_variations,
@@ -339,14 +348,149 @@ class AnimaFlexibleVariationBatchSampler:
         )
 
 
+class AnimaSaveBatchZip:
+    def __init__(self):
+        self.output_dir = folder_paths.get_output_directory()
+        self.type = "output"
+        self.compress_level = 4
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "images": ("IMAGE",),
+                "filename_prefix": (
+                    "STRING",
+                    {
+                        "default": (
+                            "anima_batches/"
+                            "%year%-%month%-%day%/"
+                            "anima_batch"
+                        ),
+                    },
+                ),
+                "auto_download": (
+                    "BOOLEAN",
+                    {
+                        "default": True,
+                    },
+                ),
+            },
+            "optional": {
+                "prompt_report": (
+                    "STRING",
+                    {
+                        "forceInput": True,
+                    },
+                ),
+            },
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+            },
+        }
+
+    RETURN_TYPES = ()
+    FUNCTION = "save"
+    OUTPUT_NODE = True
+    CATEGORY = "Anima/batch"
+    DESCRIPTION = (
+        "Saves one generation as a numbered folder of PNG files and creates "
+        "one downloadable ZIP containing the images and prompt report."
+    )
+
+    def save(
+        self,
+        images,
+        filename_prefix,
+        auto_download=True,
+        prompt_report="",
+        prompt=None,
+        extra_pnginfo=None,
+    ):
+        if len(images) == 0:
+            raise ValueError("images must contain at least one image")
+
+        (
+            full_output_folder,
+            filename,
+            counter,
+            subfolder,
+            _filename_prefix,
+        ) = folder_paths.get_save_image_path(
+            filename_prefix,
+            self.output_dir,
+            images[0].shape[1],
+            images[0].shape[0],
+        )
+
+        batch_name = f"{filename}_{counter:05}"
+        batch_folder = os.path.join(full_output_folder, batch_name)
+        os.makedirs(batch_folder, exist_ok=False)
+
+        saved_paths = []
+        image_results = []
+        image_subfolder = os.path.join(subfolder, batch_name).replace("\\", "/")
+        for batch_number, image in enumerate(images, start=1):
+            pixels = 255.0 * image.cpu().numpy()
+            output_image = Image.fromarray(
+                np.clip(pixels, 0, 255).astype(np.uint8)
+            )
+            metadata = None
+            if not args.disable_metadata:
+                metadata = PngInfo()
+                if prompt is not None:
+                    metadata.add_text("prompt", json.dumps(prompt))
+                if extra_pnginfo is not None:
+                    for key, value in extra_pnginfo.items():
+                        metadata.add_text(key, json.dumps(value))
+
+            image_filename = f"image_{batch_number:02}.png"
+            image_path = os.path.join(batch_folder, image_filename)
+            output_image.save(
+                image_path,
+                pnginfo=metadata,
+                compress_level=self.compress_level,
+            )
+            saved_paths.append(image_path)
+            image_results.append(
+                {
+                    "filename": image_filename,
+                    "subfolder": image_subfolder,
+                    "type": self.type,
+                }
+            )
+
+        zip_filename = f"{batch_name}.zip"
+        zip_path = os.path.join(full_output_folder, zip_filename)
+        create_batch_zip(zip_path, saved_paths, prompt_report or "")
+
+        return {
+            "ui": {
+                "images": image_results,
+                "zip": [
+                    {
+                        "filename": zip_filename,
+                        "subfolder": subfolder.replace("\\", "/"),
+                        "type": self.type,
+                        "count": len(saved_paths),
+                        "auto_download": bool(auto_download),
+                    }
+                ],
+            }
+        }
+
+
 NODE_CLASS_MAPPINGS = {
     "AnimaVariationGroup": AnimaVariationGroup,
     "AnimaVariationBatchSampler": AnimaVariationBatchSampler,
     "AnimaFlexibleVariationBatchSampler": AnimaFlexibleVariationBatchSampler,
+    "AnimaSaveBatchZip": AnimaSaveBatchZip,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "AnimaVariationGroup": "Anima Variation Group",
     "AnimaVariationBatchSampler": "Anima Variation Batch Sampler",
     "AnimaFlexibleVariationBatchSampler": "Anima Flexible Variation Batch Sampler",
+    "AnimaSaveBatchZip": "Anima Save Batch ZIP",
 }

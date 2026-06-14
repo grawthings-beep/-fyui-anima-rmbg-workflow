@@ -27,9 +27,11 @@ jobs:
         run: |
           python -m py_compile \
             __init__.py \
+            batch_archive.py \
             nodes.py \
             variation.py \
             scripts/download_loras.py \
+            tests/test_batch_archive.py \
             tests/test_lora_manifest.py \
             tests/test_variation.py \
             tests/test_workflow.py
@@ -50,6 +52,10 @@ jobs:
               node.get("type") == "AnimaVariationGroup"
               for node in workflow["nodes"]
           ) >= 3
+          assert any(
+              node.get("type") == "AnimaSaveBatchZip"
+              for node in workflow["nodes"]
+          )
           print(
               f"validated workflow with {len(workflow['nodes'])} nodes "
               f"and {len(workflow['links'])} links"

@@ -19,6 +19,7 @@ class WorkflowTests(unittest.TestCase):
         node_types = {node["type"] for node in self.workflow["nodes"]}
         self.assertIn("AnimaFlexibleVariationBatchSampler", node_types)
         self.assertIn("AnimaVariationGroup", node_types)
+        self.assertIn("AnimaSaveBatchZip", node_types)
 
     def test_node_orders_are_unique(self):
         orders = [node["order"] for node in self.workflow["nodes"]]
@@ -59,6 +60,27 @@ class WorkflowTests(unittest.TestCase):
         ]
         self.assertEqual(len(lora_nodes), 1)
         self.assertIn("turbo", lora_nodes[0]["widgets_values"][0].lower())
+
+    def test_prompt_report_is_connected_to_zip_saver(self):
+        sampler = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaFlexibleVariationBatchSampler"
+        )
+        saver = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaSaveBatchZip"
+        )
+        report_links = sampler["outputs"][1]["links"]
+        self.assertEqual(len(report_links), 1)
+        link = next(
+            item
+            for item in self.workflow["links"]
+            if item[0] == report_links[0]
+        )
+        self.assertEqual(link[3:5], [saver["id"], 1])
+        self.assertIs(saver["widgets_values"][1], True)
 
 
 if __name__ == "__main__":
