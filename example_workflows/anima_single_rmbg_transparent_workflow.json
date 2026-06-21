@@ -479,9 +479,12 @@
         "Node name for S&R": "AnimaRemoveBackground"
       },
       "widgets_values": [
-        "rmbg2",
+        "birefnet",
         "isnet-general-use",
         "briaai/RMBG-2.0",
+        "ZhengPeng7/BiRefNet_HR",
+        "PramaLLC/BEN2",
+        0,
         false,
         240,
         10,

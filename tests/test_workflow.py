@@ -111,15 +111,22 @@ class TransparentWorkflowTests(unittest.TestCase):
             ],
         )
 
-    def test_rmbg2_is_default_background_method(self):
+    def test_birefnet_is_default_background_method(self):
         remover = next(
             node
             for node in self.workflow["nodes"]
             if node["type"] == "AnimaRemoveBackground"
         )
         self.assertEqual(
-            remover["widgets_values"][:3],
-            ["rmbg2", "isnet-general-use", "briaai/RMBG-2.0"],
+            remover["widgets_values"][:6],
+            [
+                "birefnet",
+                "isnet-general-use",
+                "briaai/RMBG-2.0",
+                "ZhengPeng7/BiRefNet_HR",
+                "PramaLLC/BEN2",
+                0,
+            ],
         )
 
     def test_background_model_sessions_are_cached(self):

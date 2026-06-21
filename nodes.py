@@ -24,6 +24,7 @@ from .variation import (
 
 _REMBG_SESSIONS = {}
 _RMBG2_MODELS = {}
+_BEN2_MODELS = {}
 
 
 def _is_unresolved_template(value):
@@ -195,6 +196,15 @@ def _get_rmbg2_model(model_name):
     return model, device
 
 
+def _resolve_birefnet_size(model_name, requested):
+    if requested and requested > 0:
+        return int(requested)
+    # BiRefNet-HR checkpoints are trained at 2048x2048; the rest use 1024x1024.
+    if "hr" in (model_name or "").casefold():
+        return 2048
+    return 1024
+
+
 def _normalize_rmbg2_input(image, device, size=1024):
     resized = image.convert("RGB").resize((size, size), Image.BILINEAR)
     array = np.asarray(resized).astype(np.float32) / 255.0
@@ -205,9 +215,10 @@ def _normalize_rmbg2_input(image, device, size=1024):
     return torch.from_numpy(array).unsqueeze(0).to(device)
 
 
-def _remove_background_with_rmbg2(image, model_name):
+def _remove_background_with_rmbg2(image, model_name, infer_size=0):
     model, device = _get_rmbg2_model(model_name)
-    input_tensor = _normalize_rmbg2_input(image, device)
+    size = _resolve_birefnet_size(model_name, infer_size)
+    input_tensor = _normalize_rmbg2_input(image, device, size=size)
     with torch.no_grad():
         prediction = model(input_tensor)[-1].sigmoid().detach().cpu()[0].squeeze()
 
@@ -215,6 +226,52 @@ def _remove_background_with_rmbg2(image, model_name):
     mask = Image.fromarray(mask_array, mode="L").resize(image.size, Image.BILINEAR)
     rgba = image.convert("RGBA")
     rgba.putalpha(mask)
+    return rgba
+
+
+def _get_ben2_model(model_name):
+    normalized = (model_name or "PramaLLC/BEN2").strip() or "PramaLLC/BEN2"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    cache_key = (normalized, device)
+    cached = _BEN2_MODELS.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        from ben2 import BEN_Base
+    except ImportError as exc:
+        raise RuntimeError(
+            "ben2 is not installed. Add 'ben2' to this custom node's "
+            "requirements (pip install ben2) or switch method to "
+            "birefnet / rembg / edge_connected_chroma."
+        ) from exc
+
+    token = _get_hf_token()
+    try:
+        try:
+            model = BEN_Base.from_pretrained(normalized, token=token)
+        except TypeError:
+            # Older ben2 releases do not accept a token kwarg.
+            model = BEN_Base.from_pretrained(normalized)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Could not load BEN2 model {normalized}. "
+            f"Underlying error: {exc.__class__.__name__}: {exc}"
+        ) from exc
+
+    model.to(device).eval()
+    _BEN2_MODELS[cache_key] = (model, device)
+    return model, device
+
+
+def _remove_background_with_ben2(image, model_name):
+    model, _device = _get_ben2_model(model_name)
+    rgb = image.convert("RGB")
+    with torch.no_grad():
+        foreground = model.inference(rgb, refine_foreground=False)
+
+    rgba = image.convert("RGBA")
+    rgba.putalpha(foreground.convert("RGBA").getchannel("A"))
     return rgba
 
 
@@ -712,9 +769,9 @@ class AnimaRemoveBackground:
             "required": {
                 "images": ("IMAGE",),
                 "method": (
-                    ["rmbg2", "rembg", "edge_connected_chroma"],
+                    ["birefnet", "ben2", "rmbg2", "rembg", "edge_connected_chroma"],
                     {
-                        "default": "rmbg2",
+                        "default": "birefnet",
                     },
                 ),
                 "rembg_model": (
@@ -727,6 +784,27 @@ class AnimaRemoveBackground:
                     "STRING",
                     {
                         "default": "briaai/RMBG-2.0",
+                    },
+                ),
+                "birefnet_model": (
+                    "STRING",
+                    {
+                        "default": "ZhengPeng7/BiRefNet_HR",
+                    },
+                ),
+                "ben2_model": (
+                    "STRING",
+                    {
+                        "default": "PramaLLC/BEN2",
+                    },
+                ),
+                "infer_size": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 2048,
+                        "step": 32,
                     },
                 ),
                 "alpha_matting": (
@@ -792,6 +870,9 @@ class AnimaRemoveBackground:
         method,
         rembg_model,
         rmbg2_model,
+        birefnet_model,
+        ben2_model,
+        infer_size,
         alpha_matting,
         foreground_threshold,
         background_threshold,
@@ -803,8 +884,16 @@ class AnimaRemoveBackground:
         masks = []
         for image in images:
             pil_image = _tensor_to_pil_rgb(image)
-            if method == "rmbg2":
-                rgba = _remove_background_with_rmbg2(pil_image, rmbg2_model)
+            if method == "birefnet":
+                rgba = _remove_background_with_rmbg2(
+                    pil_image, birefnet_model, infer_size
+                )
+            elif method == "ben2":
+                rgba = _remove_background_with_ben2(pil_image, ben2_model)
+            elif method == "rmbg2":
+                rgba = _remove_background_with_rmbg2(
+                    pil_image, rmbg2_model, infer_size
+                )
             elif method == "rembg":
                 rgba = _remove_background_with_rembg(
                     pil_image,

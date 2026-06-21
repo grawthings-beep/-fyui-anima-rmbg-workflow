@@ -89,8 +89,12 @@ def build_remove_node(node_id, order, pos):
             "Node name for S&R": REMOVE_TYPE,
         },
         "widgets_values": [
-            "rembg",
+            "birefnet",
             "isnet-general-use",
+            "briaai/RMBG-2.0",
+            "ZhengPeng7/BiRefNet_HR",
+            "PramaLLC/BEN2",
+            0,
             False,
             240,
             10,

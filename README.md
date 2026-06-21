@@ -94,23 +94,33 @@ See `runpod/README.md`, `runpod/pod-template.example.json`, and
 
 ## Background Removal
 
-`Anima Remove Background` has three methods:
+`Anima Remove Background` has five methods:
 
-- `rmbg2`: BRIA RMBG-2.0 alpha-matte background removal. This is the default.
+- `birefnet`: BiRefNet alpha-matte background removal (default). Uses the
+  ungated `ZhengPeng7/BiRefNet_HR` model — **no HF_TOKEN required**. Same
+  architecture family as RMBG-2.0 with comparable quality.
+- `ben2`: BEN2 (`PramaLLC/BEN2`) matting model. Ungated; needs the `ben2`
+  package from `requirements.txt`.
+- `rmbg2`: BRIA RMBG-2.0 alpha-matte background removal. Gated — requires
+  accepting the model terms and a real `HF_TOKEN`.
 - `rembg`: AI background removal fallback. Requires `rembg` from `requirements.txt`.
 - `edge_connected_chroma`: removes only corner-color background connected to the image edges.
 
 For pixel sprites, start with:
 
 ```text
-method: rmbg2
-rmbg2_model: briaai/RMBG-2.0
+method: birefnet
+birefnet_model: ZhengPeng7/BiRefNet_HR
+infer_size: 0        # 0 = auto (2048 for HR checkpoints, 1024 otherwise)
 preview_background: checker
 ```
 
-BRIA RMBG-2.0 is source-available for non-commercial use and may require
-accepting the Hugging Face model terms. On RunPod, set `HF_TOKEN` as a secret so
-the model can be downloaded into `HF_HOME=/workspace/huggingface`.
+`birefnet` and `ben2` are not gated, so they work without a Hugging Face token.
+Weights download on first use into `HF_HOME` (on RunPod, `/workspace/huggingface`).
+
+To use BRIA RMBG-2.0 instead, set `method: rmbg2`. RMBG-2.0 is source-available
+for non-commercial use and requires accepting the Hugging Face model terms; set
+`HF_TOKEN` as a RunPod secret so it can be downloaded.
 
 If the mask still eats body details and the generated image has a simple
 solid-ish background, try:
