@@ -17,7 +17,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /opt/anima-rmbg/requirements.txt
-RUN python -m pip install --no-cache-dir -r /opt/anima-rmbg/requirements.txt
+RUN PYTHON_BIN="$(command -v python3 || command -v python)" \
+    && "${PYTHON_BIN}" -m pip install --no-cache-dir -r /opt/anima-rmbg/requirements.txt
 
 COPY . /opt/anima-rmbg/custom_node/
 RUN chmod +x /opt/anima-rmbg/custom_node/runpod/start.sh
@@ -26,4 +27,3 @@ EXPOSE 8188
 
 ENTRYPOINT []
 CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]
-
