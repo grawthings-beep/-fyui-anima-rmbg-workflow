@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "workflow": "example_workflows/anima_single_rmbg_transparent_workflow.json",
+  "assets": [
+    {
+      "id": "wai-anima-base",
+      "kind": "diffusion_model",
+      "filename": "waiANIMA_v10Base10.safetensors",
+      "path": "models/diffusion_models/waiANIMA_v10Base10.safetensors",
+      "url": null,
+      "min_bytes": 1048576
+    },
+    {
+      "id": "qwen3-06b-base-text-encoder",
+      "kind": "text_encoder",
+      "filename": "qwen_3_06b_base.safetensors",
+      "path": "models/text_encoders/qwen_3_06b_base.safetensors",
+      "url": null,
+      "min_bytes": 1048576
+    },
+    {
+      "id": "qwen-image-vae",
+      "kind": "vae",
+      "filename": "qwen_image_vae.safetensors",
+      "path": "models/vae/qwen_image_vae.safetensors",
+      "url": null,
+      "min_bytes": 1048576
+    },
+    {
+      "id": "anima-turbo",
+      "kind": "lora",
+      "filename": "anima-turbo-lora-v0.2.safetensors",
+      "path": "models/loras/anima-turbo-lora-v0.2.safetensors",
+      "url": null,
+      "min_bytes": 1048576
+    },
+    {
+      "id": "pixel-came",
+      "kind": "lora",
+      "filename": "pixel-AnimaB_V10-V1-CAME.safetensors",
+      "path": "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "min_bytes": 1048576
+    },
+    {
+      "id": "skintexture-v1",
+      "kind": "lora",
+      "filename": "skintextureV1.safetensors",
+      "path": "models/loras/anima/skintextureV1.safetensors",
+      "url": null,
+      "min_bytes": 1048576
+    }
+  ]
+}

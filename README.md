@@ -1,25 +1,30 @@
-# ComfyUI Anima Variation Batch
+# ComfyUI Anima RMBG Workflow
 
-[![CI](https://github.com/grawthings-beep/comfyui-anima-variation-batch/actions/workflows/ci.yml/badge.svg)](https://github.com/grawthings-beep/comfyui-anima-variation-batch/actions/workflows/ci.yml)
+ComfyUI custom nodes and workflows for generating Anima pixel-style sprites,
+removing the background, and saving transparent PNG batches.
 
-`Anima Flexible Variation Batch Sampler` creates several deliberately varied
-images from one base prompt in a single queued ComfyUI execution.
+This repo is based on `comfyui-anima-variation-batch`, with two added nodes:
 
-It:
+- `Anima Remove Background`
+- `Anima Save Transparent Batch ZIP`
 
-- accepts any number of chained variation categories;
-- selects one comma-separated option from every category;
-- uses every option in a category before reshuffling that category;
-- encodes a separate positive prompt for every output;
-- assigns an independent sampling seed to every output;
-- samples and VAE-decodes sequentially to keep sampling VRAM close to a
-  one-image workflow;
-- combines the finished images into one IMAGE batch for previewing and saving;
-- saves each execution as a PNG folder and one-click downloadable ZIP.
+The packaged workflow is:
 
-The default is four images per execution. This is sequential generation inside
-one ComfyUI node, not a four-image GPU batch. Four outputs take roughly four
-times the sampling time of one output.
+```text
+example_workflows/anima_single_rmbg_transparent_workflow.json
+```
+
+It is configured from the supplied workflow and adds:
+
+```text
+VAEDecode
+-> Anima Remove Background
+-> PreviewImage
+-> Anima Save Transparent Batch ZIP
+```
+
+The preview image is composited over a checkerboard. The saved PNG files use a
+real alpha channel.
 
 ## Install
 
@@ -27,144 +32,122 @@ From the ComfyUI custom node directory:
 
 ```bash
 cd /path/to/ComfyUI/custom_nodes
-git clone https://github.com/grawthings-beep/comfyui-anima-variation-batch.git \
-  ComfyUI-AnimaVariationBatch
+git clone https://github.com/grawthings-beep/-fyui-anima-rmbg-workflow.git \
+  ComfyUI-AnimaRmbgWorkflow
+```
+
+Install optional background-removal dependencies:
+
+```bash
+cd ComfyUI-AnimaRmbgWorkflow
+pip install -r requirements.txt
 ```
 
 Restart ComfyUI, then load:
 
 ```text
-example_workflows/anima_variation_batch_workflow.json
+example_workflows/anima_single_rmbg_transparent_workflow.json
 ```
 
-It is also exposed through ComfyUI's workflow templates browser.
+## Background Removal
 
-## Batch ZIP saving
+`Anima Remove Background` has two methods:
 
-The example workflow uses `Anima Save Batch ZIP` instead of the standard
-`Save Image` node. With `auto_download` enabled, the entire batch downloads
-to the PC automatically after generation. The node also keeps a
-`Download ZIP` button for manual re-download.
+- `rembg`: AI background removal. Requires `rembg` from `requirements.txt`.
+- `edge_connected_chroma`: removes only corner-color background connected to the image edges.
 
-Files are stored in:
+For pixel sprites, start with:
 
 ```text
-output/anima_batches/YYYY-MM-DD/anima_batch_00001/
-output/anima_batches/YYYY-MM-DD/anima_batch_00001.zip
+method: rembg
+rembg_model: isnet-general-use
+alpha_matting: false
+erode_size: 0
+preview_background: checker
 ```
 
-The ZIP contains every PNG plus `prompt_report.txt` with the selected tags,
-expanded prompts, and seeds. PNG workflow metadata is preserved.
-
-For the existing RunPod image, the ComfyUI installation is commonly found at
-one of:
+If the mask is too soft or eats pixel details, try:
 
 ```text
-/opt/ComfyUI
-/workspace/ComfyUI
-/workspace/comfyui
+method: edge_connected_chroma
+edge_tolerance: 20-40
 ```
 
-## Inputs
+That method is only reliable when the generated image has a simple solid-ish
+background.
 
-- `base_prompt`: character, clothes, scene, quality tags, and fixed details.
-- `variation_groups`: connect the final `Anima Variation Group` node.
-- `count`: outputs per queued execution; defaults to `4`.
-- `master_seed`: controls category shuffle order and every derived image seed.
-- `steps`, `cfg`, `sampler_name`, `scheduler`, `denoise`: KSampler settings.
+## Output
 
-Each `Anima Variation Group` contains:
-
-- `category_name`: a report label such as `Angle`, `Expression`, or `Pose`.
-- `options`: short prompt tags separated by commas or new lines.
-- `previous_groups`: connect the preceding Group node here.
-
-Example:
+`Anima Save Transparent Batch ZIP` writes:
 
 ```text
-Angle:
-from above, from side, from below, eye level, dutch angle
-
-Expression:
-smile, serious, angry, surprised, embarrassed
-
-Pose:
-standing, sitting, lying, looking back, arms crossed
+output/anima_transparent/YYYY-MM-DD/anima_transparent_00001/image_01.png
+output/anima_transparent/YYYY-MM-DD/anima_transparent_00001.zip
 ```
 
-Connect `Angle -> Expression -> Pose -> Flexible Sampler`. Duplicate the Group
-node and connect it to the end to add `Composition`, `Lighting`, `Clothes`, or
-any other category. There is no fixed category count.
+The PNGs contain RGBA transparency. The ZIP is suitable for moving generated
+sprites into a downstream animation pipeline.
 
-Keep the connected `Empty Latent Image` batch size at `1`. Use `count` on the
-custom node to choose the number of outputs.
+## Workflow Assets
 
-Each category acts as an independent shuffle bag. With three angle tags and
-eight outputs, all three angles are used once in random order, then reshuffled
-and used again. This works even when a category has fewer options than
-`count`.
+This repo includes a workflow-specific asset manifest:
 
-Lines beginning with `#` are ignored. Duplicate options are removed
-case-insensitively.
+```text
+config/workflow-assets.json
+```
 
-The original two-field `Anima Variation Batch Sampler` remains available for
-old workflows.
+It lists only the files used by the packaged workflow:
 
-## Optional character LoRA downloads
+- `waiANIMA_v10Base10.safetensors`
+- `qwen_3_06b_base.safetensors`
+- `qwen_image_vae.safetensors`
+- `anima-turbo-lora-v0.2.safetensors`
+- `anima/pixel-AnimaB_V10-V1-CAME.safetensors`
+- `anima/skintextureV1.safetensors`
 
-`config/anima-loras.json` mirrors the private character LoRAs used by the
-RunPod image, including Label and Ark Ranger Black. The repository contains
-only download metadata, not model weights.
-
-List available IDs:
+List them:
 
 ```bash
-python scripts/download_loras.py --list
+python scripts/download_workflow_assets.py --list
 ```
 
-Download selected LoRAs:
+Install into a ComfyUI root:
 
 ```bash
 hf auth login
-hf auth whoami
-python scripts/download_loras.py \
-  --root /workspace/comfyui \
-  --id label \
-  --id arkrangerblack
+python scripts/download_workflow_assets.py --root /workspace/comfyui
 ```
 
-Omit `--id` to download every listed character LoRA. Files are installed under
-`models/loras/anima/`. A successful `hf auth login` is required because the
-LoRA repository is private.
+If the files already exist in another ComfyUI install, copy only these workflow
+assets from it:
 
-## Anima Turbo example
+```bash
+python scripts/download_workflow_assets.py \
+  --root /workspace/comfyui \
+  --source-root /path/to/existing/ComfyUI
+```
 
-The included workflow is configured as an example for:
+Known limitation: most model URLs in `config/workflow-assets.json` are left as
+`null` because the supplied workflow references local filenames and the original
+repo only contained a public URL for `pixel-came`. Fill in the remaining URLs
+when their source repositories are known, or use `--source-root` to copy them
+from an existing ComfyUI install.
 
-- Anima-compatible diffusion model
-- Qwen 3 0.6B text encoder
-- Qwen Image VAE
-- Anima Turbo LoRA
-- 8 steps
-- 4 outputs
+## Regenerate The Workflow
 
-Model filenames are examples. Select the files installed in your own ComfyUI
-environment.
+To inject the background-removal nodes into another ComfyUI UI workflow:
 
-## What this does not guarantee
+```bash
+python scripts/inject_background_nodes.py input_workflow.json output_workflow.json
+```
 
-Prompt tags increase diversity but do not provide exact pose or camera
-control. Closely related tags can still produce visually similar images.
-Control Adapter, ControlNet, pose, edge, or depth conditioning is a separate
-tool when specific 2D structure is required.
+By default it connects the last `VAEDecode` to the last `PreviewImage`.
 
 ## License
 
 GPL-3.0-only. See `LICENSE`.
 
-This repository does not distribute Anima or LoRA weights. Check the license of
-every model used in your workflow. The official Anima model and derivatives
-are restricted to non-commercial use unless a commercial license is obtained.
-
-- [Official Anima model card](https://huggingface.co/circlestone-labs/Anima)
-- [ComfyUI](https://github.com/Comfy-Org/ComfyUI)
+This repository does not distribute Anima, Qwen, RMBG, or LoRA weights. Check
+the license of every model used in your workflow. The official Anima model and
+derivatives may be restricted to non-commercial use unless a commercial license
+is obtained.

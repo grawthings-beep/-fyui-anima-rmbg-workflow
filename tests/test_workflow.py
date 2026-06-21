@@ -8,6 +8,11 @@ WORKFLOW_PATH = (
     / "example_workflows"
     / "anima_variation_batch_workflow.json"
 )
+TRANSPARENT_WORKFLOW_PATH = (
+    Path(__file__).parents[1]
+    / "example_workflows"
+    / "anima_single_rmbg_transparent_workflow.json"
+)
 
 
 class WorkflowTests(unittest.TestCase):
@@ -81,6 +86,71 @@ class WorkflowTests(unittest.TestCase):
         )
         self.assertEqual(link[3:5], [saver["id"], 1])
         self.assertIs(saver["widgets_values"][1], True)
+
+
+class TransparentWorkflowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.workflow = json.loads(
+            TRANSPARENT_WORKFLOW_PATH.read_text(encoding="utf-8")
+        )
+
+    def test_background_nodes_are_present(self):
+        node_types = {node["type"] for node in self.workflow["nodes"]}
+        self.assertIn("AnimaRemoveBackground", node_types)
+        self.assertIn("AnimaSaveTransparentBatchZip", node_types)
+
+    def test_links_reference_existing_nodes_and_sockets(self):
+        nodes = {node["id"]: node for node in self.workflow["nodes"]}
+        link_ids = set()
+
+        for link_id, source_id, source_slot, target_id, target_slot, _type in (
+            self.workflow["links"]
+        ):
+            self.assertNotIn(link_id, link_ids)
+            link_ids.add(link_id)
+            self.assertIn(source_id, nodes)
+            self.assertIn(target_id, nodes)
+            self.assertLess(source_slot, len(nodes[source_id]["outputs"]))
+            self.assertLess(target_slot, len(nodes[target_id]["inputs"]))
+
+    def test_vae_decode_feeds_background_removal(self):
+        vae_decode = next(
+            node for node in self.workflow["nodes"] if node["type"] == "VAEDecode"
+        )
+        remover = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaRemoveBackground"
+        )
+        output_links = vae_decode["outputs"][0]["links"]
+        self.assertEqual(len(output_links), 1)
+        link = next(
+            item
+            for item in self.workflow["links"]
+            if item[0] == output_links[0]
+        )
+        self.assertEqual(link[3:5], [remover["id"], 0])
+
+    def test_transparent_saver_receives_image_and_mask(self):
+        remover = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaRemoveBackground"
+        )
+        saver = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaSaveTransparentBatchZip"
+        )
+        saver_links = [item for item in self.workflow["links"] if item[3] == saver["id"]]
+        self.assertEqual(
+            sorted((link[1], link[2], link[4], link[5]) for link in saver_links),
+            [
+                (remover["id"], 0, 0, "IMAGE"),
+                (remover["id"], 1, 1, "MASK"),
+            ],
+        )
 
 
 if __name__ == "__main__":

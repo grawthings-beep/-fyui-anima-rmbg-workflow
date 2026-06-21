@@ -33,32 +33,30 @@ class LoraManifestTests(unittest.TestCase):
             )
         )
 
-    def test_recent_loras_are_present(self):
+    def test_workflow_loras_with_known_urls_are_present(self):
         by_id = {entry["id"]: entry for entry in self.entries}
-        self.assertEqual(by_id["label"]["trigger"], "l4bel")
-        self.assertEqual(by_id["arkrangerblack"]["trigger"], "4rkblack")
-        self.assertEqual(by_id["anisstar3"]["trigger"], "an1sstar3")
+        self.assertEqual(set(by_id), {"pixel-came"})
         self.assertEqual(by_id["pixel-came"]["trigger"], "CAME")
         self.assertEqual(
-            by_id["anisstar3"]["url"],
+            by_id["pixel-came"]["url"],
             "https://huggingface.co/uwgm/nikke-loras/resolve/main/"
-            "anima_anisstar3.safetensors",
+            "pixel-AnimaB_V10-V1-CAME.safetensors",
         )
 
     def test_selection_accepts_multiple_ids(self):
-        selected = select_loras(self.entries, ["label", "arkrangerblack"])
+        selected = select_loras(self.entries, ["pixel-came"])
         self.assertEqual(
             [entry["id"] for entry in selected],
-            ["label", "arkrangerblack"],
+            ["pixel-came"],
         )
 
     def test_hugging_face_urls_can_be_passed_to_hf_download(self):
-        entry = next(item for item in self.entries if item["id"] == "anisstar")
+        entry = next(item for item in self.entries if item["id"] == "pixel-came")
         self.assertEqual(
             parse_hf_resolve_url(entry["url"]),
             (
                 "uwgm/nikke-loras",
-                "anima_anisstar (2).safetensors",
+                "pixel-AnimaB_V10-V1-CAME.safetensors",
             ),
         )
 
