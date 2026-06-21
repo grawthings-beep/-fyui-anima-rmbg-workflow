@@ -28,12 +28,14 @@ class RunPodTemplateTest(unittest.TestCase):
 
     def test_dockerfile_uses_runpod_comfyui_base(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
 
         self.assertIn("ARG BASE_IMAGE=runpod/comfyui:latest", dockerfile)
         self.assertIn("pip install", dockerfile)
         self.assertIn("U2NET_HOME=/root/.u2net", dockerfile)
         self.assertIn("new_session('isnet-general-use')", dockerfile)
         self.assertIn('CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]', dockerfile)
+        self.assertIn("rembg[cpu]", requirements)
 
     def test_start_script_is_docker_first(self):
         script = (ROOT / "runpod" / "start.sh").read_text(encoding="utf-8")
