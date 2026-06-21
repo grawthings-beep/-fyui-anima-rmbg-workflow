@@ -1,0 +1,32 @@
+{
+  "name": "ComfyUI Anima RMBG Workflow",
+  "category": "NVIDIA",
+  "isPublic": false,
+  "isServerless": false,
+  "imageName": "YOUR_COMFYUI_IMAGE:TAG",
+  "containerDiskInGb": 80,
+  "volumeInGb": 100,
+  "volumeMountPath": "/workspace",
+  "ports": [
+    "8188/http",
+    "22/tcp"
+  ],
+  "dockerEntrypoint": [],
+  "dockerStartCmd": [
+    "bash",
+    "-lc",
+    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
+  ],
+  "env": {
+    "REPO_URL": "https://github.com/grawthings-beep/-fyui-anima-rmbg-workflow.git",
+    "REPO_BRANCH": "main",
+    "CUSTOM_NODE_DIR_NAME": "ComfyUI-AnimaRmbgWorkflow",
+    "COMFYUI_PORT": "8188",
+    "START_COMFYUI": "1",
+    "INSTALL_NODE_REQUIREMENTS": "1",
+    "INSTALL_WORKFLOW_ASSETS": "0",
+    "ALLOW_MISSING_WORKFLOW_ASSETS": "0",
+    "UPDATE_REPO": "1"
+  },
+  "readme": "Installs the Anima RMBG ComfyUI custom node and packaged transparent workflow. Set imageName to a ComfyUI-capable image, expose HTTP port 8188, and add HF_TOKEN as a RunPod secret if you download assets from Hugging Face."
+}

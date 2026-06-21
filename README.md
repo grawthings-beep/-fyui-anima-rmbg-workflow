@@ -49,6 +49,33 @@ Restart ComfyUI, then load:
 example_workflows/anima_single_rmbg_transparent_workflow.json
 ```
 
+## RunPod
+
+RunPod files are included under:
+
+```text
+runpod/
+```
+
+Use a ComfyUI-capable RunPod image or template, then set the container start
+command to:
+
+```bash
+bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
+```
+
+Recommended template settings:
+
+```text
+Volume mount path: /workspace
+Expose HTTP ports: 8188
+Expose TCP ports: 22
+```
+
+If your image stores ComfyUI somewhere else, set `COMFYUI_ROOT` to the directory
+that contains `main.py`. See `runpod/README.md`,
+`runpod/pod-template.example.json`, and `runpod/template.env.example`.
+
 ## Background Removal
 
 `Anima Remove Background` has two methods:
