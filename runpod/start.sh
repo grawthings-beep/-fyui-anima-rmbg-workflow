@@ -80,6 +80,11 @@ PORT="${PORT:-8188}"
 LISTEN="${LISTEN:-0.0.0.0}"
 export HF_HOME
 
+if [[ "${HF_TOKEN:-}" == *"RUNPOD_SECRET"* || "${HF_TOKEN:-}" == *"{{"* ]]; then
+  echo "WARN: HF_TOKEN looks like an unresolved RunPod secret placeholder: ${HF_TOKEN}" >&2
+  echo "WARN: BRIA RMBG-2.0 will not load until HF_TOKEN contains a real Hugging Face token." >&2
+fi
+
 mkdir -p "${WORKSPACE_DIR}/input" \
          "${WORKSPACE_DIR}/output" \
          "${MODEL_ROOT}/models/checkpoints" \

@@ -26,6 +26,10 @@ _REMBG_SESSIONS = {}
 _RMBG2_MODELS = {}
 
 
+def _is_unresolved_template(value):
+    return "{{" in value or "}}" in value or "RUNPOD_SECRET" in value
+
+
 def _tensor_to_pil_rgb(image):
     pixels = 255.0 * image.cpu().numpy()
     return Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8)).convert("RGB")
@@ -137,12 +141,16 @@ def _get_rembg_session(model_name):
 
 
 def _get_hf_token():
-    return (
+    token = (
         os.environ.get("HF_TOKEN")
         or os.environ.get("HUGGING_FACE_HUB_TOKEN")
         or os.environ.get("HUGGINGFACE_HUB_TOKEN")
-        or None
+        or ""
     )
+    token = token.strip()
+    if not token or _is_unresolved_template(token):
+        return None
+    return token
 
 
 def _get_rmbg2_model(model_name):
@@ -161,16 +169,26 @@ def _get_rmbg2_model(model_name):
             "requirements or switch method to edge_connected_chroma."
         ) from exc
 
+    token = _get_hf_token()
+    if normalized.casefold() == "briaai/rmbg-2.0" and token is None:
+        raise RuntimeError(
+            "BRIA RMBG-2.0 is a gated Hugging Face model. Set a real HF_TOKEN "
+            "in the RunPod template, make sure the RunPod secret placeholder "
+            "expanded, and accept the model terms at "
+            "https://huggingface.co/briaai/RMBG-2.0."
+        )
+
     try:
         model = AutoModelForImageSegmentation.from_pretrained(
             normalized,
             trust_remote_code=True,
-            token=_get_hf_token(),
+            token=token,
         ).eval()
     except Exception as exc:
         raise RuntimeError(
             f"Could not load {normalized}. If this is BRIA RMBG-2.0, accept "
-            "the model terms on Hugging Face and set HF_TOKEN in RunPod."
+            "the model terms on Hugging Face and set HF_TOKEN in RunPod. "
+            f"Underlying error: {exc.__class__.__name__}: {exc}"
         ) from exc
     model.to(device)
     _RMBG2_MODELS[cache_key] = (model, device)
