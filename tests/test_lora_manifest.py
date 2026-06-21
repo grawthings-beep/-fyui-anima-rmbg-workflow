@@ -38,6 +38,7 @@ class LoraManifestTests(unittest.TestCase):
         self.assertEqual(by_id["label"]["trigger"], "l4bel")
         self.assertEqual(by_id["arkrangerblack"]["trigger"], "4rkblack")
         self.assertEqual(by_id["anisstar3"]["trigger"], "an1sstar3")
+        self.assertEqual(by_id["pixel-came"]["trigger"], "CAME")
         self.assertEqual(
             by_id["anisstar3"]["url"],
             "https://huggingface.co/uwgm/nikke-loras/resolve/main/"

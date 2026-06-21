@@ -138,6 +138,14 @@
       "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/anima_arkrangerblack.safetensors",
       "path": "models/loras/anima/anima_arkrangerblack.safetensors",
       "min_bytes": 1048576
+    },
+    {
+      "id": "pixel-came",
+      "name": "Pixel AnimaB CAME LoRA (trigger: CAME)",
+      "trigger": "CAME",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "path": "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "min_bytes": 1048576
     }
   ]
 }
