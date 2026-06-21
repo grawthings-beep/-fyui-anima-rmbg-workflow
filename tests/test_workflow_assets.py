@@ -32,7 +32,6 @@ class WorkflowAssetTests(unittest.TestCase):
             [
                 "models/loras/anima-turbo-lora-v0.2.safetensors",
                 "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
-                "models/loras/anima/skintextureV1.safetensors",
             ],
         )
 
@@ -41,6 +40,9 @@ class WorkflowAssetTests(unittest.TestCase):
         filenames = {entry["filename"] for entry in self.manifest["assets"]}
         for filename in filenames:
             self.assertIn(filename, workflow_text)
+
+    def test_manifest_entries_have_download_urls(self):
+        self.assertTrue(all(entry["url"] for entry in self.manifest["assets"]))
 
 
 if __name__ == "__main__":

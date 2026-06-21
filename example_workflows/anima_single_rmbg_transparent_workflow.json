@@ -106,7 +106,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            84
+            85
           ]
         }
       ],
@@ -324,46 +324,6 @@
       "widgets_values": [
         "anima/pixel-AnimaB_V10-V1-CAME.safetensors",
         0.9
-      ]
-    },
-    {
-      "id": 47,
-      "type": "LoraLoaderModelOnly",
-      "pos": [
-        622.4810564501817,
-        209.80944090593698
-      ],
-      "size": [
-        270,
-        82
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 4,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            85
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.18.2",
-        "Node name for S&R": "LoraLoaderModelOnly"
-      },
-      "widgets_values": [
-        "anima/skintextureV1.safetensors",
-        1
       ]
     },
     {
@@ -625,22 +585,6 @@
       "CLIP"
     ],
     [
-      84,
-      46,
-      0,
-      47,
-      0,
-      "MODEL"
-    ],
-    [
-      85,
-      47,
-      0,
-      19,
-      0,
-      "MODEL"
-    ],
-    [
       86,
       44,
       0,
@@ -653,6 +597,14 @@
       48,
       0,
       46,
+      0,
+      "MODEL"
+    ],
+    [
+      85,
+      46,
+      0,
+      19,
       0,
       "MODEL"
     ],

@@ -7,31 +7,31 @@
       "kind": "diffusion_model",
       "filename": "waiANIMA_v10Base10.safetensors",
       "path": "models/diffusion_models/waiANIMA_v10Base10.safetensors",
-      "url": null,
-      "min_bytes": 1048576
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/waiANIMA_v10Base10.safetensors",
+      "min_bytes": 1073741824
     },
     {
       "id": "qwen3-06b-base-text-encoder",
       "kind": "text_encoder",
       "filename": "qwen_3_06b_base.safetensors",
       "path": "models/text_encoders/qwen_3_06b_base.safetensors",
-      "url": null,
-      "min_bytes": 1048576
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true",
+      "min_bytes": 104857600
     },
     {
       "id": "qwen-image-vae",
       "kind": "vae",
       "filename": "qwen_image_vae.safetensors",
       "path": "models/vae/qwen_image_vae.safetensors",
-      "url": null,
-      "min_bytes": 1048576
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true",
+      "min_bytes": 10485760
     },
     {
       "id": "anima-turbo",
       "kind": "lora",
       "filename": "anima-turbo-lora-v0.2.safetensors",
       "path": "models/loras/anima-turbo-lora-v0.2.safetensors",
-      "url": null,
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/anima-turbo-lora-v0.2.safetensors",
       "min_bytes": 1048576
     },
     {
@@ -40,14 +40,6 @@
       "filename": "pixel-AnimaB_V10-V1-CAME.safetensors",
       "path": "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
       "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/pixel-AnimaB_V10-V1-CAME.safetensors",
-      "min_bytes": 1048576
-    },
-    {
-      "id": "skintexture-v1",
-      "kind": "lora",
-      "filename": "skintextureV1.safetensors",
-      "path": "models/loras/anima/skintextureV1.safetensors",
-      "url": null,
       "min_bytes": 1048576
     }
   ]

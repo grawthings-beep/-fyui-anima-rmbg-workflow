@@ -2,8 +2,16 @@
   "version": 1,
   "repository": "https://huggingface.co/uwgm/nikke-loras",
   "authentication": "hf auth login",
-  "note": "Limited to LoRAs from the packaged workflow that have known URLs in the source repository.",
+  "note": "Limited to LoRAs used by the packaged transparent workflow.",
   "loras": [
+    {
+      "id": "anima-turbo",
+      "name": "Anima Turbo LoRA v0.2",
+      "trigger": "none",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/anima-turbo-lora-v0.2.safetensors",
+      "path": "models/loras/anima-turbo-lora-v0.2.safetensors",
+      "min_bytes": 1048576
+    },
     {
       "id": "pixel-came",
       "name": "Pixel AnimaB CAME LoRA (trigger: CAME)",

@@ -27,7 +27,7 @@ class LoraManifestTests(unittest.TestCase):
     def test_all_files_install_under_anima_lora_directory(self):
         self.assertTrue(
             all(
-                entry["path"].startswith("models/loras/anima/")
+                entry["path"].startswith("models/loras/")
                 and entry["path"].endswith(".safetensors")
                 for entry in self.entries
             )
@@ -35,7 +35,13 @@ class LoraManifestTests(unittest.TestCase):
 
     def test_workflow_loras_with_known_urls_are_present(self):
         by_id = {entry["id"]: entry for entry in self.entries}
-        self.assertEqual(set(by_id), {"pixel-came"})
+        self.assertEqual(set(by_id), {"anima-turbo", "pixel-came"})
+        self.assertEqual(by_id["anima-turbo"]["trigger"], "none")
+        self.assertEqual(
+            by_id["anima-turbo"]["url"],
+            "https://huggingface.co/uwgm/nikke-loras/resolve/main/"
+            "anima-turbo-lora-v0.2.safetensors",
+        )
         self.assertEqual(by_id["pixel-came"]["trigger"], "CAME")
         self.assertEqual(
             by_id["pixel-came"]["url"],
@@ -44,21 +50,25 @@ class LoraManifestTests(unittest.TestCase):
         )
 
     def test_selection_accepts_multiple_ids(self):
-        selected = select_loras(self.entries, ["pixel-came"])
+        selected = select_loras(self.entries, ["anima-turbo", "pixel-came"])
         self.assertEqual(
             [entry["id"] for entry in selected],
-            ["pixel-came"],
+            ["anima-turbo", "pixel-came"],
         )
 
     def test_hugging_face_urls_can_be_passed_to_hf_download(self):
-        entry = next(item for item in self.entries if item["id"] == "pixel-came")
-        self.assertEqual(
-            parse_hf_resolve_url(entry["url"]),
-            (
+        expected = {
+            "anima-turbo": (
+                "uwgm/nikke-loras",
+                "anima-turbo-lora-v0.2.safetensors",
+            ),
+            "pixel-came": (
                 "uwgm/nikke-loras",
                 "pixel-AnimaB_V10-V1-CAME.safetensors",
             ),
-        )
+        }
+        for entry in self.entries:
+            self.assertEqual(parse_hf_resolve_url(entry["url"]), expected[entry["id"]])
 
 
 if __name__ == "__main__":

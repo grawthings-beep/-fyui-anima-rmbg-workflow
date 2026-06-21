@@ -7,7 +7,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class RunPodTemplateTest(unittest.TestCase):
-    def test_template_points_to_start_script(self):
+    def test_template_uses_built_ghcr_image(self):
         template = json.loads(
             (ROOT / "runpod" / "pod-template.example.json").read_text(
                 encoding="utf-8"
@@ -15,36 +15,66 @@ class RunPodTemplateTest(unittest.TestCase):
         )
 
         self.assertIn("8188/http", template["ports"])
+        self.assertNotIn("22/tcp", template["ports"])
         self.assertEqual("/workspace", template["volumeMountPath"])
         self.assertEqual(
-            "https://github.com/grawthings-beep/-fyui-anima-rmbg-workflow.git",
-            template["env"]["REPO_URL"],
-        )
-        self.assertEqual(
-            "runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204",
+            "ghcr.io/grawthings-beep/comfyui-anima-rmbg-workflow:cuda12.8",
             template["imageName"],
         )
-        self.assertEqual("1", template["env"]["INSTALL_COMFYUI"])
-        self.assertIn("runpod/start.sh", " ".join(template["dockerStartCmd"]))
+        self.assertEqual([], template["dockerEntrypoint"])
+        self.assertEqual([], template["dockerStartCmd"])
+        self.assertEqual("/workspace/comfyui", template["env"]["MODEL_ROOT"])
+        self.assertEqual("1", template["env"]["DOWNLOAD_MODELS"])
 
-    def test_start_script_is_bash_script(self):
+    def test_dockerfile_uses_runpod_comfyui_base(self):
+        dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+
+        self.assertIn("ARG BASE_IMAGE=runpod/comfyui:latest", dockerfile)
+        self.assertIn("pip install", dockerfile)
+        self.assertIn('CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]', dockerfile)
+
+    def test_start_script_is_docker_first(self):
         script = (ROOT / "runpod" / "start.sh").read_text(encoding="utf-8")
 
         self.assertTrue(script.startswith("#!/usr/bin/env bash\n"))
-        self.assertIn("ComfyUI was not found; installing it", script)
-        self.assertIn("download_workflow_assets.py", script)
+        self.assertIn("find_comfyui_dir", script)
+        self.assertIn("extra_model_paths.yaml", script)
+        self.assertIn("download_models.py", script)
+        self.assertNotIn("git clone --depth 1 --branch", script)
 
-    def test_raw_start_command_is_short_ui_json(self):
+    def test_raw_start_command_points_to_baked_script(self):
         raw_command = json.loads(
             (ROOT / "runpod" / "start-command.raw.json").read_text(
                 encoding="utf-8"
             )
         )
 
-        self.assertEqual(["bash", "-lc"], raw_command["entrypoint"])
-        self.assertEqual(1, len(raw_command["cmd"]))
-        self.assertIn("runpod/start.sh", raw_command["cmd"][0])
+        self.assertEqual([], raw_command["entrypoint"])
+        self.assertEqual(
+            ["/opt/anima-rmbg/custom_node/runpod/start.sh"],
+            raw_command["cmd"],
+        )
         self.assertNotIn("imageName", raw_command)
+
+    def test_base_model_manifest_has_only_required_loras(self):
+        manifest = json.loads(
+            (ROOT / "config" / "anima-rmbg-models.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        lora_paths = [
+            entry["path"]
+            for entry in manifest["models"]
+            if entry["path"].startswith("models/loras/")
+        ]
+
+        self.assertEqual(
+            lora_paths,
+            [
+                "models/loras/anima-turbo-lora-v0.2.safetensors",
+                "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+            ],
+        )
 
 
 if __name__ == "__main__":

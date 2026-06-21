@@ -30,6 +30,8 @@ jobs:
             batch_archive.py \
             nodes.py \
             variation.py \
+            scripts/check_env.py \
+            scripts/download_models.py \
             scripts/download_loras.py \
             tests/test_batch_archive.py \
             tests/test_lora_manifest.py \

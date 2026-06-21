@@ -1,0 +1,65 @@
+{
+  "models": [
+    {
+      "name": "WAI-ANIMA checkpoint v1.0",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/waiANIMA_v10Base10.safetensors",
+      "path": "models/diffusion_models/waiANIMA_v10Base10.safetensors",
+      "headers": {
+        "Authorization": "Bearer ${HF_TOKEN}"
+      },
+      "min_bytes": 1073741824
+    },
+    {
+      "name": "Anima Qwen text encoder",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true",
+      "path": "models/text_encoders/qwen_3_06b_base.safetensors",
+      "headers": {
+        "Authorization": "Bearer ${HF_TOKEN}"
+      },
+      "min_bytes": 104857600
+    },
+    {
+      "name": "Anima Qwen image VAE",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true",
+      "path": "models/vae/qwen_image_vae.safetensors",
+      "headers": {
+        "Authorization": "Bearer ${HF_TOKEN}"
+      },
+      "min_bytes": 10485760
+    },
+    {
+      "name": "Anima Turbo LoRA v0.2",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/anima-turbo-lora-v0.2.safetensors",
+      "path": "models/loras/anima-turbo-lora-v0.2.safetensors",
+      "headers": {
+        "Authorization": "Bearer ${HF_TOKEN}"
+      },
+      "min_bytes": 1048576
+    },
+    {
+      "name": "Pixel AnimaB CAME LoRA",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "path": "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "headers": {
+        "Authorization": "Bearer ${HF_TOKEN}"
+      },
+      "min_bytes": 1048576
+    }
+  ]
+}
+

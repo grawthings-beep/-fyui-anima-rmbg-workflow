@@ -3,34 +3,26 @@
   "category": "NVIDIA",
   "isPublic": false,
   "isServerless": false,
-  "imageName": "runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204",
-  "containerDiskInGb": 80,
+  "imageName": "ghcr.io/grawthings-beep/comfyui-anima-rmbg-workflow:cuda12.8",
+  "containerDiskInGb": 40,
   "volumeInGb": 100,
   "volumeMountPath": "/workspace",
   "ports": [
-    "8188/http",
-    "22/tcp"
+    "8188/http"
   ],
   "dockerEntrypoint": [],
-  "dockerStartCmd": [
-    "bash",
-    "-lc",
-    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
-  ],
+  "dockerStartCmd": [],
   "env": {
-    "REPO_URL": "https://github.com/grawthings-beep/-fyui-anima-rmbg-workflow.git",
-    "REPO_BRANCH": "main",
-    "CUSTOM_NODE_DIR_NAME": "ComfyUI-AnimaRmbgWorkflow",
-    "COMFYUI_PORT": "8188",
-    "COMFYUI_REPO_URL": "https://github.com/comfyanonymous/ComfyUI.git",
-    "COMFYUI_BRANCH": "master",
-    "INSTALL_COMFYUI": "1",
-    "INSTALL_COMFYUI_REQUIREMENTS": "1",
-    "START_COMFYUI": "1",
-    "INSTALL_NODE_REQUIREMENTS": "1",
-    "INSTALL_WORKFLOW_ASSETS": "0",
-    "ALLOW_MISSING_WORKFLOW_ASSETS": "0",
-    "UPDATE_REPO": "1"
+    "PORT": "8188",
+    "LISTEN": "0.0.0.0",
+    "WORKSPACE_DIR": "/workspace/comfyui",
+    "MODEL_ROOT": "/workspace/comfyui",
+    "DOWNLOAD_MODELS": "1",
+    "RUN_DEP_CHECK": "0",
+    "HF_TOKEN": "{{ RUNPOD_SECRET_HF_TOKEN }}",
+    "ARIA2_CONNECTIONS": "16",
+    "ARIA2_SPLITS": "16",
+    "COMFYUI_ARGS": "--reserve-vram 3"
   },
-  "readme": "Installs ComfyUI when needed, then installs the Anima RMBG custom node and packaged transparent workflow. Expose HTTP port 8188. Add HF_TOKEN as a RunPod secret if you download assets from Hugging Face."
+  "readme": "Docker image based on runpod/comfyui. Installs the Anima RMBG custom node and workflow, downloads only the WAI-ANIMA base, Qwen text encoder, Qwen image VAE, Anima Turbo LoRA, and Pixel CAME LoRA into /workspace/comfyui/models, then starts ComfyUI on port 8188."
 }

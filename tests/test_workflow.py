@@ -100,6 +100,20 @@ class TransparentWorkflowTests(unittest.TestCase):
         self.assertIn("AnimaRemoveBackground", node_types)
         self.assertIn("AnimaSaveTransparentBatchZip", node_types)
 
+    def test_transparent_workflow_uses_only_turbo_and_pixel_loras(self):
+        lora_names = [
+            node["widgets_values"][0]
+            for node in self.workflow["nodes"]
+            if node["type"] == "LoraLoaderModelOnly"
+        ]
+        self.assertEqual(
+            lora_names,
+            [
+                "anima-turbo-lora-v0.2.safetensors",
+                "anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+            ],
+        )
+
     def test_links_reference_existing_nodes_and_sockets(self):
         nodes = {node["id"]: node for node in self.workflow["nodes"]}
         link_ids = set()

@@ -51,50 +51,44 @@ example_workflows/anima_single_rmbg_transparent_workflow.json
 
 ## RunPod
 
-RunPod files are included under:
+RunPod uses the same Docker-first design as
+`grawthings-beep/anima-image-runpod`: the image is based on
+`runpod/comfyui:latest`, this custom node and workflow are baked into the
+image, and large model files are downloaded into `/workspace/comfyui/models` at
+Pod startup.
+
+After GitHub Actions builds the image, use:
 
 ```text
-runpod/
-```
-
-Use this container image:
-
-```text
-runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204
-```
-
-Then set the container start command to:
-
-```bash
-bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
-```
-
-For the Start Command Raw Editor, paste:
-
-```json
-{
-  "entrypoint": [
-    "bash",
-    "-lc"
-  ],
-  "cmd": [
-    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
-  ]
-}
+ghcr.io/grawthings-beep/comfyui-anima-rmbg-workflow:cuda12.8
 ```
 
 Recommended template settings:
 
 ```text
+Container disk: 40 GB
+Volume disk: 100 GB+
 Volume mount path: /workspace
 Expose HTTP ports: 8188
-Expose TCP ports: 22
+Container start command: leave empty
 ```
 
-If your image stores ComfyUI somewhere else, set `COMFYUI_ROOT` to the directory
-that contains `main.py`. If ComfyUI is missing, the startup script installs it
-to `/workspace/ComfyUI`. See `runpod/README.md`,
-`runpod/start-command.raw.json`, `runpod/pod-template.example.json`, and
+Environment variables:
+
+```env
+PORT=8188
+LISTEN=0.0.0.0
+WORKSPACE_DIR=/workspace/comfyui
+MODEL_ROOT=/workspace/comfyui
+DOWNLOAD_MODELS=1
+RUN_DEP_CHECK=0
+HF_TOKEN={{ RUNPOD_SECRET_HF_TOKEN }}
+ARIA2_CONNECTIONS=16
+ARIA2_SPLITS=16
+COMFYUI_ARGS=--reserve-vram 3
+```
+
+See `runpod/README.md`, `runpod/pod-template.example.json`, and
 `runpod/template.env.example`.
 
 ## Background Removal
@@ -151,7 +145,6 @@ It lists only the files used by the packaged workflow:
 - `qwen_image_vae.safetensors`
 - `anima-turbo-lora-v0.2.safetensors`
 - `anima/pixel-AnimaB_V10-V1-CAME.safetensors`
-- `anima/skintextureV1.safetensors`
 
 List them:
 
@@ -175,11 +168,10 @@ python scripts/download_workflow_assets.py \
   --source-root /path/to/existing/ComfyUI
 ```
 
-Known limitation: most model URLs in `config/workflow-assets.json` are left as
-`null` because the supplied workflow references local filenames and the original
-repo only contained a public URL for `pixel-came`. Fill in the remaining URLs
-when their source repositories are known, or use `--source-root` to copy them
-from an existing ComfyUI install.
+RunPod uses `config/anima-rmbg-models.json`, which follows the same manifest
+shape as `anima-image-runpod`. The base manifest intentionally includes only two
+LoRAs: `anima-turbo-lora-v0.2.safetensors` and
+`anima/pixel-AnimaB_V10-V1-CAME.safetensors`.
 
 ## Regenerate The Workflow
 

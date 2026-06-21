@@ -1,89 +1,81 @@
 # RunPod Template
 
-Use this with RunPod's PyTorch image or a ComfyUI image you already trust. The
-startup script installs ComfyUI when needed, installs this repository into
-`custom_nodes`, installs the Python requirements, and starts ComfyUI on port
-`8188`.
+This template follows the same Docker-first layout as
+`grawthings-beep/anima-image-runpod`.
+
+The image is based on `runpod/comfyui:latest`. It bakes the Anima RMBG custom
+node, background-removal dependency, workflow, and startup/download scripts into
+the container. Large model files are downloaded into the persistent RunPod
+volume at Pod startup, so later boots reuse `/workspace/comfyui/models`.
+
+## GHCR Image
+
+GitHub Actions builds:
+
+```text
+ghcr.io/grawthings-beep/comfyui-anima-rmbg-workflow:cuda12.8
+```
+
+The package name intentionally avoids the repository's leading hyphen so it is a
+valid Docker image reference.
 
 ## Console Settings
 
 Recommended Pod template values:
 
 ```text
-Container image: runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204
+Container image: ghcr.io/grawthings-beep/comfyui-anima-rmbg-workflow:cuda12.8
+Container disk: 40 GB
+Volume disk: 100 GB+
 Volume mount path: /workspace
 Expose HTTP ports: 8188
-Expose TCP ports: 22
-Container start command:
-bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
+Container start command: leave empty
 ```
 
-If you are editing only the container start command in RunPod's Raw Editor, use:
-
-```json
-{
-  "entrypoint": [
-    "bash",
-    "-lc"
-  ],
-  "cmd": [
-    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
-  ]
-}
-```
-
-This short JSON is also available at:
+Environment variables:
 
 ```text
-runpod/start-command.raw.json
+PORT=8188
+LISTEN=0.0.0.0
+WORKSPACE_DIR=/workspace/comfyui
+MODEL_ROOT=/workspace/comfyui
+DOWNLOAD_MODELS=1
+RUN_DEP_CHECK=0
+HF_TOKEN={{ RUNPOD_SECRET_HF_TOKEN }}
+ARIA2_CONNECTIONS=16
+ARIA2_SPLITS=16
+COMFYUI_ARGS=--reserve-vram 3
 ```
 
-If the image keeps ComfyUI somewhere other than `/workspace/ComfyUI`, set:
+Keep tokens in RunPod Secrets. Do not paste raw tokens into a public template.
+
+## Model Layout
+
+Startup downloads only the model files used by the packaged transparent RMBG
+workflow:
 
 ```text
-COMFYUI_ROOT=/path/to/ComfyUI
+/workspace/comfyui/models/diffusion_models/waiANIMA_v10Base10.safetensors
+/workspace/comfyui/models/text_encoders/qwen_3_06b_base.safetensors
+/workspace/comfyui/models/vae/qwen_image_vae.safetensors
+/workspace/comfyui/models/loras/anima-turbo-lora-v0.2.safetensors
+/workspace/comfyui/models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors
 ```
 
-If the image already has ComfyUI and you do not want the script to install or
-update it, set:
+The only LoRAs in the base manifest are:
 
 ```text
-INSTALL_COMFYUI=0
+anima-turbo-lora-v0.2.safetensors
+anima/pixel-AnimaB_V10-V1-CAME.safetensors
 ```
 
-After the Pod starts, open:
+## ComfyUI
+
+Open RunPod Connect for port `8188`.
+
+The startup script installs this custom node into ComfyUI and places the
+workflow in ComfyUI's normal Workflows list:
 
 ```text
-https://[POD_ID]-8188.proxy.runpod.net
+anima_single_rmbg_transparent_workflow.json
 ```
-
-Then load:
-
-```text
-custom_nodes/ComfyUI-AnimaRmbgWorkflow/example_workflows/anima_single_rmbg_transparent_workflow.json
-```
-
-## Template JSON
-
-`pod-template.example.json` mirrors RunPod's REST template fields for creating
-the entire template through the API. It is longer than the Start Command Raw
-Editor JSON. It uses `runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204`; you can
-replace `imageName` with a ComfyUI image you already use.
-
-## Environment Variables
-
-`template.env.example` contains the supported variables. The important ones are:
-
-- `COMFYUI_ROOT`: set only when auto-detection cannot find ComfyUI.
-- `INSTALL_COMFYUI`: `1` clones ComfyUI into `/workspace/ComfyUI` when missing.
-- `START_COMFYUI`: `1` starts `main.py --listen 0.0.0.0 --port 8188`.
-- `RUN_BASE_START`: starts `/start.sh` from the base image in the background.
-- `INSTALL_WORKFLOW_ASSETS`: installs only the models and LoRAs referenced by
-  the packaged workflow.
-- `WORKFLOW_ASSET_SOURCE_ROOT`: copies those assets from another ComfyUI root.
-- `HF_TOKEN`: use a RunPod secret when downloading from Hugging Face.
-
-Keep `INSTALL_WORKFLOW_ASSETS=0` until the missing URLs in
-`config/workflow-assets.json` are filled or the assets are already available in
-the Pod volume. The original workflow references local model filenames, and only
-the `pixel-came` LoRA currently has a known public URL in this repo.
