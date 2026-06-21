@@ -75,8 +75,10 @@ MODEL_ROOT="${MODEL_ROOT:-${WORKSPACE_DIR}}"
 CONFIG_DIR="${CONFIG_DIR:-/workspace/config}"
 MODEL_MANIFEST="${MODEL_MANIFEST:-${CONFIG_DIR}/anima-rmbg-models.json}"
 EXTRA_MODEL_MANIFEST="${EXTRA_MODEL_MANIFEST:-${CONFIG_DIR}/extra-anima-rmbg-models.json}"
+HF_HOME="${HF_HOME:-/workspace/huggingface}"
 PORT="${PORT:-8188}"
 LISTEN="${LISTEN:-0.0.0.0}"
+export HF_HOME
 
 mkdir -p "${WORKSPACE_DIR}/input" \
          "${WORKSPACE_DIR}/output" \
@@ -93,7 +95,8 @@ mkdir -p "${WORKSPACE_DIR}/input" \
          "${MODEL_ROOT}/models/upscale_models" \
          "${MODEL_ROOT}/models/vae" \
          "${MODEL_ROOT}/models/vae_approx" \
-         "${CONFIG_DIR}"
+         "${CONFIG_DIR}" \
+         "${HF_HOME}"
 
 write_extra_model_paths() {
   local target="$1"

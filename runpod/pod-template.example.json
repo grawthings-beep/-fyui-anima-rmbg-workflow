@@ -17,6 +17,7 @@
     "LISTEN": "0.0.0.0",
     "WORKSPACE_DIR": "/workspace/comfyui",
     "MODEL_ROOT": "/workspace/comfyui",
+    "HF_HOME": "/workspace/huggingface",
     "DOWNLOAD_MODELS": "1",
     "RUN_DEP_CHECK": "0",
     "HF_TOKEN": "{{ RUNPOD_SECRET_HF_TOKEN }}",

@@ -111,10 +111,23 @@ class TransparentWorkflowTests(unittest.TestCase):
             ],
         )
 
-    def test_rembg_session_is_cached(self):
+    def test_rmbg2_is_default_background_method(self):
+        remover = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaRemoveBackground"
+        )
+        self.assertEqual(
+            remover["widgets_values"][:3],
+            ["rmbg2", "isnet-general-use", "briaai/RMBG-2.0"],
+        )
+
+    def test_background_model_sessions_are_cached(self):
         source = (ROOT / "nodes.py").read_text(encoding="utf-8")
         self.assertIn("_REMBG_SESSIONS", source)
+        self.assertIn("_RMBG2_MODELS", source)
         self.assertIn("_get_rembg_session", source)
+        self.assertIn("_get_rmbg2_model", source)
 
     def test_links_reference_existing_nodes_and_sockets(self):
         nodes = {node["id"]: node for node in self.workflow["nodes"]}

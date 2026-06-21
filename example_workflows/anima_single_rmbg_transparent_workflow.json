@@ -479,8 +479,9 @@
         "Node name for S&R": "AnimaRemoveBackground"
       },
       "widgets_values": [
-        "rembg",
+        "rmbg2",
         "isnet-general-use",
+        "briaai/RMBG-2.0",
         false,
         240,
         10,

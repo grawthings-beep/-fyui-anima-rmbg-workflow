@@ -80,6 +80,7 @@ PORT=8188
 LISTEN=0.0.0.0
 WORKSPACE_DIR=/workspace/comfyui
 MODEL_ROOT=/workspace/comfyui
+HF_HOME=/workspace/huggingface
 DOWNLOAD_MODELS=1
 RUN_DEP_CHECK=0
 HF_TOKEN={{ RUNPOD_SECRET_HF_TOKEN }}
@@ -93,22 +94,26 @@ See `runpod/README.md`, `runpod/pod-template.example.json`, and
 
 ## Background Removal
 
-`Anima Remove Background` has two methods:
+`Anima Remove Background` has three methods:
 
-- `rembg`: AI background removal. Requires `rembg` from `requirements.txt`.
+- `rmbg2`: BRIA RMBG-2.0 alpha-matte background removal. This is the default.
+- `rembg`: AI background removal fallback. Requires `rembg` from `requirements.txt`.
 - `edge_connected_chroma`: removes only corner-color background connected to the image edges.
 
 For pixel sprites, start with:
 
 ```text
-method: rembg
-rembg_model: isnet-general-use
-alpha_matting: false
-erode_size: 0
+method: rmbg2
+rmbg2_model: briaai/RMBG-2.0
 preview_background: checker
 ```
 
-If the mask is too soft or eats pixel details, try:
+BRIA RMBG-2.0 is source-available for non-commercial use and may require
+accepting the Hugging Face model terms. On RunPod, set `HF_TOKEN` as a secret so
+the model can be downloaded into `HF_HOME=/workspace/huggingface`.
+
+If the mask still eats body details and the generated image has a simple
+solid-ish background, try:
 
 ```text
 method: edge_connected_chroma

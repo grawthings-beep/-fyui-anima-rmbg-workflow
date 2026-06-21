@@ -23,6 +23,7 @@ from .variation import (
 
 
 _REMBG_SESSIONS = {}
+_RMBG2_MODELS = {}
 
 
 def _tensor_to_pil_rgb(image):
@@ -133,6 +134,70 @@ def _get_rembg_session(model_name):
         session = new_session(normalized)
         _REMBG_SESSIONS[normalized] = session
     return session
+
+
+def _get_hf_token():
+    return (
+        os.environ.get("HF_TOKEN")
+        or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+        or None
+    )
+
+
+def _get_rmbg2_model(model_name):
+    normalized = (model_name or "briaai/RMBG-2.0").strip() or "briaai/RMBG-2.0"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    cache_key = (normalized, device)
+    cached = _RMBG2_MODELS.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        from transformers import AutoModelForImageSegmentation
+    except ImportError as exc:
+        raise RuntimeError(
+            "transformers is not installed. Install this custom node's "
+            "requirements or switch method to edge_connected_chroma."
+        ) from exc
+
+    try:
+        model = AutoModelForImageSegmentation.from_pretrained(
+            normalized,
+            trust_remote_code=True,
+            token=_get_hf_token(),
+        ).eval()
+    except Exception as exc:
+        raise RuntimeError(
+            f"Could not load {normalized}. If this is BRIA RMBG-2.0, accept "
+            "the model terms on Hugging Face and set HF_TOKEN in RunPod."
+        ) from exc
+    model.to(device)
+    _RMBG2_MODELS[cache_key] = (model, device)
+    return model, device
+
+
+def _normalize_rmbg2_input(image, device, size=1024):
+    resized = image.convert("RGB").resize((size, size), Image.BILINEAR)
+    array = np.asarray(resized).astype(np.float32) / 255.0
+    mean = np.asarray([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.asarray([0.229, 0.224, 0.225], dtype=np.float32)
+    array = (array - mean) / std
+    array = np.transpose(array, (2, 0, 1))
+    return torch.from_numpy(array).unsqueeze(0).to(device)
+
+
+def _remove_background_with_rmbg2(image, model_name):
+    model, device = _get_rmbg2_model(model_name)
+    input_tensor = _normalize_rmbg2_input(image, device)
+    with torch.no_grad():
+        prediction = model(input_tensor)[-1].sigmoid().detach().cpu()[0].squeeze()
+
+    mask_array = np.clip(prediction.numpy() * 255.0, 0, 255).astype(np.uint8)
+    mask = Image.fromarray(mask_array, mode="L").resize(image.size, Image.BILINEAR)
+    rgba = image.convert("RGBA")
+    rgba.putalpha(mask)
+    return rgba
 
 
 def _remove_background_with_rembg(
@@ -629,15 +694,21 @@ class AnimaRemoveBackground:
             "required": {
                 "images": ("IMAGE",),
                 "method": (
-                    ["rembg", "edge_connected_chroma"],
+                    ["rmbg2", "rembg", "edge_connected_chroma"],
                     {
-                        "default": "rembg",
+                        "default": "rmbg2",
                     },
                 ),
                 "rembg_model": (
                     "STRING",
                     {
                         "default": "isnet-general-use",
+                    },
+                ),
+                "rmbg2_model": (
+                    "STRING",
+                    {
+                        "default": "briaai/RMBG-2.0",
                     },
                 ),
                 "alpha_matting": (
@@ -702,6 +773,7 @@ class AnimaRemoveBackground:
         images,
         method,
         rembg_model,
+        rmbg2_model,
         alpha_matting,
         foreground_threshold,
         background_threshold,
@@ -713,7 +785,9 @@ class AnimaRemoveBackground:
         masks = []
         for image in images:
             pil_image = _tensor_to_pil_rgb(image)
-            if method == "rembg":
+            if method == "rmbg2":
+                rgba = _remove_background_with_rmbg2(pil_image, rmbg2_model)
+            elif method == "rembg":
                 rgba = _remove_background_with_rembg(
                     pil_image,
                     rembg_model,

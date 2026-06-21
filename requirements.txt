@@ -1,1 +1,4 @@
 rembg[cpu]>=2.0.67
+transformers>=4.50.3
+kornia>=0.7.1
+safetensors>=0.4.2

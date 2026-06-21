@@ -24,6 +24,7 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertEqual([], template["dockerEntrypoint"])
         self.assertEqual([], template["dockerStartCmd"])
         self.assertEqual("/workspace/comfyui", template["env"]["MODEL_ROOT"])
+        self.assertEqual("/workspace/huggingface", template["env"]["HF_HOME"])
         self.assertEqual("1", template["env"]["DOWNLOAD_MODELS"])
 
     def test_dockerfile_uses_runpod_comfyui_base(self):
@@ -36,6 +37,8 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertIn("new_session('isnet-general-use')", dockerfile)
         self.assertIn('CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]', dockerfile)
         self.assertIn("rembg[cpu]", requirements)
+        self.assertIn("transformers", requirements)
+        self.assertIn("kornia", requirements)
 
     def test_start_script_is_docker_first(self):
         script = (ROOT / "runpod" / "start.sh").read_text(encoding="utf-8")

@@ -37,6 +37,7 @@ PORT=8188
 LISTEN=0.0.0.0
 WORKSPACE_DIR=/workspace/comfyui
 MODEL_ROOT=/workspace/comfyui
+HF_HOME=/workspace/huggingface
 DOWNLOAD_MODELS=1
 RUN_DEP_CHECK=0
 HF_TOKEN={{ RUNPOD_SECRET_HF_TOKEN }}
@@ -52,9 +53,12 @@ Use RunPod Connect port `8188`.
 The first boot downloads the model files. Later boots reuse
 `/workspace/comfyui/models`.
 
+The workflow defaults to `briaai/RMBG-2.0` for background removal. Make sure the
+Hugging Face account behind `HF_TOKEN` has accepted the model terms; the model
+cache is reused from `/workspace/huggingface`.
+
 The workflow is installed into ComfyUI's normal Workflows list:
 
 ```text
 anima_single_rmbg_transparent_workflow.json
 ```
-
