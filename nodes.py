@@ -22,6 +22,9 @@ from .variation import (
 )
 
 
+_REMBG_SESSIONS = {}
+
+
 def _tensor_to_pil_rgb(image):
     pixels = 255.0 * image.cpu().numpy()
     return Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8)).convert("RGB")
@@ -115,6 +118,23 @@ def _edge_connected_chroma_rgba(image, tolerance):
     return rgba
 
 
+def _get_rembg_session(model_name):
+    try:
+        from rembg import new_session
+    except ImportError as exc:
+        raise RuntimeError(
+            "rembg is not installed. Install this custom node's optional "
+            "requirements or switch method to edge_connected_chroma."
+        ) from exc
+
+    normalized = (model_name or "isnet-general-use").strip() or "isnet-general-use"
+    session = _REMBG_SESSIONS.get(normalized)
+    if session is None:
+        session = new_session(normalized)
+        _REMBG_SESSIONS[normalized] = session
+    return session
+
+
 def _remove_background_with_rembg(
     image,
     model_name,
@@ -124,14 +144,14 @@ def _remove_background_with_rembg(
     erode_size,
 ):
     try:
-        from rembg import new_session, remove
+        from rembg import remove
     except ImportError as exc:
         raise RuntimeError(
             "rembg is not installed. Install this custom node's optional "
             "requirements or switch method to edge_connected_chroma."
         ) from exc
 
-    session = new_session(model_name)
+    session = _get_rembg_session(model_name)
     return remove(
         image,
         session=session,

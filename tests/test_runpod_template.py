@@ -31,6 +31,8 @@ class RunPodTemplateTest(unittest.TestCase):
 
         self.assertIn("ARG BASE_IMAGE=runpod/comfyui:latest", dockerfile)
         self.assertIn("pip install", dockerfile)
+        self.assertIn("U2NET_HOME=/root/.u2net", dockerfile)
+        self.assertIn("new_session('isnet-general-use')", dockerfile)
         self.assertIn('CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]', dockerfile)
 
     def test_start_script_is_docker_first(self):

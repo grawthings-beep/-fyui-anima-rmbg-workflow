@@ -3,15 +3,12 @@ import unittest
 from pathlib import Path
 
 
+ROOT = Path(__file__).parents[1]
 WORKFLOW_PATH = (
-    Path(__file__).parents[1]
-    / "example_workflows"
-    / "anima_variation_batch_workflow.json"
+    ROOT / "example_workflows" / "anima_variation_batch_workflow.json"
 )
 TRANSPARENT_WORKFLOW_PATH = (
-    Path(__file__).parents[1]
-    / "example_workflows"
-    / "anima_single_rmbg_transparent_workflow.json"
+    ROOT / "example_workflows" / "anima_single_rmbg_transparent_workflow.json"
 )
 
 
@@ -113,6 +110,11 @@ class TransparentWorkflowTests(unittest.TestCase):
                 "anima/pixel-AnimaB_V10-V1-CAME.safetensors",
             ],
         )
+
+    def test_rembg_session_is_cached(self):
+        source = (ROOT / "nodes.py").read_text(encoding="utf-8")
+        self.assertIn("_REMBG_SESSIONS", source)
+        self.assertIn("_get_rembg_session", source)
 
     def test_links_reference_existing_nodes_and_sockets(self):
         nodes = {node["id"]: node for node in self.workflow["nodes"]}

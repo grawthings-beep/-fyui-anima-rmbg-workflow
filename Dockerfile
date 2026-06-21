@@ -6,7 +6,8 @@ FROM ${BASE_IMAGE}
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    U2NET_HOME=/root/.u2net
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -18,7 +19,9 @@ RUN apt-get update \
 
 COPY requirements.txt /opt/anima-rmbg/requirements.txt
 RUN PYTHON_BIN="$(command -v python3 || command -v python)" \
-    && "${PYTHON_BIN}" -m pip install --no-cache-dir -r /opt/anima-rmbg/requirements.txt
+    && "${PYTHON_BIN}" -m pip install --no-cache-dir -r /opt/anima-rmbg/requirements.txt \
+    && mkdir -p "${U2NET_HOME}" \
+    && "${PYTHON_BIN}" -c "from rembg import new_session; new_session('isnet-general-use')"
 
 COPY . /opt/anima-rmbg/custom_node/
 RUN chmod +x /opt/anima-rmbg/custom_node/runpod/start.sh
