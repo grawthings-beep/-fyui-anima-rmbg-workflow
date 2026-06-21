@@ -69,6 +69,20 @@ Then set the container start command to:
 bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
 ```
 
+For the Start Command Raw Editor, paste:
+
+```json
+{
+  "entrypoint": [
+    "bash",
+    "-lc"
+  ],
+  "cmd": [
+    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
+  ]
+}
+```
+
 Recommended template settings:
 
 ```text
@@ -80,7 +94,8 @@ Expose TCP ports: 22
 If your image stores ComfyUI somewhere else, set `COMFYUI_ROOT` to the directory
 that contains `main.py`. If ComfyUI is missing, the startup script installs it
 to `/workspace/ComfyUI`. See `runpod/README.md`,
-`runpod/pod-template.example.json`, and `runpod/template.env.example`.
+`runpod/start-command.raw.json`, `runpod/pod-template.example.json`, and
+`runpod/template.env.example`.
 
 ## Background Removal
 

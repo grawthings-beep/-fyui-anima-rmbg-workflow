@@ -18,6 +18,26 @@ Container start command:
 bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
 ```
 
+If you are editing only the container start command in RunPod's Raw Editor, use:
+
+```json
+{
+  "entrypoint": [
+    "bash",
+    "-lc"
+  ],
+  "cmd": [
+    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
+  ]
+}
+```
+
+This short JSON is also available at:
+
+```text
+runpod/start-command.raw.json
+```
+
 If the image keeps ComfyUI somewhere other than `/workspace/ComfyUI`, set:
 
 ```text
@@ -45,9 +65,10 @@ custom_nodes/ComfyUI-AnimaRmbgWorkflow/example_workflows/anima_single_rmbg_trans
 
 ## Template JSON
 
-`pod-template.example.json` mirrors RunPod's REST template fields and uses
-`runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204`. You can replace `imageName`
-with a ComfyUI image you already use.
+`pod-template.example.json` mirrors RunPod's REST template fields for creating
+the entire template through the API. It is longer than the Start Command Raw
+Editor JSON. It uses `runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204`; you can
+replace `imageName` with a ComfyUI image you already use.
 
 ## Environment Variables
 

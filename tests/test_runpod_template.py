@@ -34,6 +34,18 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertIn("ComfyUI was not found; installing it", script)
         self.assertIn("download_workflow_assets.py", script)
 
+    def test_raw_start_command_is_short_ui_json(self):
+        raw_command = json.loads(
+            (ROOT / "runpod" / "start-command.raw.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertEqual(["bash", "-lc"], raw_command["entrypoint"])
+        self.assertEqual(1, len(raw_command["cmd"]))
+        self.assertIn("runpod/start.sh", raw_command["cmd"][0])
+        self.assertNotIn("imageName", raw_command)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,9 @@
+{
+  "entrypoint": [
+    "bash",
+    "-lc"
+  ],
+  "cmd": [
+    "curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh"
+  ]
+}
