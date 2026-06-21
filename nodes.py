@@ -219,8 +219,16 @@ def _remove_background_with_rmbg2(image, model_name, infer_size=0):
     model, device = _get_rmbg2_model(model_name)
     size = _resolve_birefnet_size(model_name, infer_size)
     input_tensor = _normalize_rmbg2_input(image, device, size=size)
+    # Match the model's parameter dtype so fp16-loaded checkpoints (common in
+    # baked ComfyUI images) do not raise "Input type (float) and bias type
+    # (c10::Half) should be the same".
+    try:
+        param_dtype = next(model.parameters()).dtype
+        input_tensor = input_tensor.to(param_dtype)
+    except StopIteration:
+        pass
     with torch.no_grad():
-        prediction = model(input_tensor)[-1].sigmoid().detach().cpu()[0].squeeze()
+        prediction = model(input_tensor)[-1].sigmoid().detach().float().cpu()[0].squeeze()
 
     mask_array = np.clip(prediction.numpy() * 255.0, 0, 255).astype(np.uint8)
     mask = Image.fromarray(mask_array, mode="L").resize(image.size, Image.BILINEAR)
