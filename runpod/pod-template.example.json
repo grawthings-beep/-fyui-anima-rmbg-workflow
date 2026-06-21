@@ -3,7 +3,7 @@
   "category": "NVIDIA",
   "isPublic": false,
   "isServerless": false,
-  "imageName": "YOUR_COMFYUI_IMAGE:TAG",
+  "imageName": "runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204",
   "containerDiskInGb": 80,
   "volumeInGb": 100,
   "volumeMountPath": "/workspace",
@@ -22,11 +22,15 @@
     "REPO_BRANCH": "main",
     "CUSTOM_NODE_DIR_NAME": "ComfyUI-AnimaRmbgWorkflow",
     "COMFYUI_PORT": "8188",
+    "COMFYUI_REPO_URL": "https://github.com/comfyanonymous/ComfyUI.git",
+    "COMFYUI_BRANCH": "master",
+    "INSTALL_COMFYUI": "1",
+    "INSTALL_COMFYUI_REQUIREMENTS": "1",
     "START_COMFYUI": "1",
     "INSTALL_NODE_REQUIREMENTS": "1",
     "INSTALL_WORKFLOW_ASSETS": "0",
     "ALLOW_MISSING_WORKFLOW_ASSETS": "0",
     "UPDATE_REPO": "1"
   },
-  "readme": "Installs the Anima RMBG ComfyUI custom node and packaged transparent workflow. Set imageName to a ComfyUI-capable image, expose HTTP port 8188, and add HF_TOKEN as a RunPod secret if you download assets from Hugging Face."
+  "readme": "Installs ComfyUI when needed, then installs the Anima RMBG custom node and packaged transparent workflow. Expose HTTP port 8188. Add HF_TOKEN as a RunPod secret if you download assets from Hugging Face."
 }

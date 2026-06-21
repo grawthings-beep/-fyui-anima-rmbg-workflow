@@ -20,13 +20,18 @@ class RunPodTemplateTest(unittest.TestCase):
             "https://github.com/grawthings-beep/-fyui-anima-rmbg-workflow.git",
             template["env"]["REPO_URL"],
         )
+        self.assertEqual(
+            "runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204",
+            template["imageName"],
+        )
+        self.assertEqual("1", template["env"]["INSTALL_COMFYUI"])
         self.assertIn("runpod/start.sh", " ".join(template["dockerStartCmd"]))
 
     def test_start_script_is_bash_script(self):
         script = (ROOT / "runpod" / "start.sh").read_text(encoding="utf-8")
 
         self.assertTrue(script.startswith("#!/usr/bin/env bash\n"))
-        self.assertIn("ComfyUI root was not found", script)
+        self.assertIn("ComfyUI was not found; installing it", script)
         self.assertIn("download_workflow_assets.py", script)
 
 

@@ -55,9 +55,26 @@ REPO_URL="${REPO_URL:-https://github.com/grawthings-beep/-fyui-anima-rmbg-workfl
 REPO_BRANCH="${REPO_BRANCH:-main}"
 CUSTOM_NODE_DIR_NAME="${CUSTOM_NODE_DIR_NAME:-ComfyUI-AnimaRmbgWorkflow}"
 COMFYUI_PORT="${COMFYUI_PORT:-8188}"
+COMFYUI_REPO_URL="${COMFYUI_REPO_URL:-https://github.com/comfyanonymous/ComfyUI.git}"
+COMFYUI_BRANCH="${COMFYUI_BRANCH:-master}"
 
 if ! COMFYUI_ROOT_RESOLVED="$(find_comfyui_root)"; then
-  die "ComfyUI root was not found. Set COMFYUI_ROOT to the directory that contains main.py."
+  if ! is_truthy "${INSTALL_COMFYUI:-1}"; then
+    die "ComfyUI root was not found. Set COMFYUI_ROOT to the directory that contains main.py, or set INSTALL_COMFYUI=1."
+  fi
+
+  COMFYUI_ROOT_RESOLVED="${COMFYUI_ROOT:-/workspace/ComfyUI}"
+  log "ComfyUI was not found; installing it to $COMFYUI_ROOT_RESOLVED"
+  mkdir -p "$(dirname "$COMFYUI_ROOT_RESOLVED")"
+  if [ -d "$COMFYUI_ROOT_RESOLVED/.git" ]; then
+    git -C "$COMFYUI_ROOT_RESOLVED" fetch --depth 1 origin "$COMFYUI_BRANCH"
+    git -C "$COMFYUI_ROOT_RESOLVED" checkout "$COMFYUI_BRANCH" 2>/dev/null || git -C "$COMFYUI_ROOT_RESOLVED" checkout -B "$COMFYUI_BRANCH" "origin/$COMFYUI_BRANCH"
+    git -C "$COMFYUI_ROOT_RESOLVED" merge --ff-only "origin/$COMFYUI_BRANCH"
+  elif [ -e "$COMFYUI_ROOT_RESOLVED" ]; then
+    die "COMFYUI_ROOT exists but does not look like ComfyUI: $COMFYUI_ROOT_RESOLVED"
+  else
+    git clone --depth 1 --branch "$COMFYUI_BRANCH" "$COMFYUI_REPO_URL" "$COMFYUI_ROOT_RESOLVED"
+  fi
 fi
 export COMFYUI_ROOT="$COMFYUI_ROOT_RESOLVED"
 
@@ -72,6 +89,12 @@ TARGET_DIR="$CUSTOM_NODES_DIR/$CUSTOM_NODE_DIR_NAME"
 log "ComfyUI root: $COMFYUI_ROOT"
 log "Python: $PYTHON"
 mkdir -p "$CUSTOM_NODES_DIR"
+
+if is_truthy "${INSTALL_COMFYUI_REQUIREMENTS:-1}" && [ -f "$COMFYUI_ROOT/requirements.txt" ]; then
+  log "Installing ComfyUI Python requirements"
+  "$PYTHON" -m pip install --upgrade pip
+  "$PYTHON" -m pip install -r "$COMFYUI_ROOT/requirements.txt"
+fi
 
 if [ -d "$TARGET_DIR/.git" ]; then
   log "Custom node already exists: $TARGET_DIR"
@@ -94,7 +117,6 @@ fi
 
 if is_truthy "${INSTALL_NODE_REQUIREMENTS:-1}"; then
   log "Installing custom node Python requirements"
-  "$PYTHON" -m pip install --upgrade pip
   "$PYTHON" -m pip install -r "$TARGET_DIR/requirements.txt"
   "$PYTHON" -m pip install "huggingface_hub>=0.23"
 fi

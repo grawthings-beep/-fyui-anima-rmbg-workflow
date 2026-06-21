@@ -57,8 +57,13 @@ RunPod files are included under:
 runpod/
 ```
 
-Use a ComfyUI-capable RunPod image or template, then set the container start
-command to:
+Use this container image:
+
+```text
+runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204
+```
+
+Then set the container start command to:
 
 ```bash
 bash -lc 'curl -fsSL https://raw.githubusercontent.com/grawthings-beep/-fyui-anima-rmbg-workflow/main/runpod/start.sh -o /tmp/anima-rmbg-start.sh && bash /tmp/anima-rmbg-start.sh'
@@ -73,7 +78,8 @@ Expose TCP ports: 22
 ```
 
 If your image stores ComfyUI somewhere else, set `COMFYUI_ROOT` to the directory
-that contains `main.py`. See `runpod/README.md`,
+that contains `main.py`. If ComfyUI is missing, the startup script installs it
+to `/workspace/ComfyUI`. See `runpod/README.md`,
 `runpod/pod-template.example.json`, and `runpod/template.env.example`.
 
 ## Background Removal

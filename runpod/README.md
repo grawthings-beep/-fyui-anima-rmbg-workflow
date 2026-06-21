@@ -1,15 +1,16 @@
 # RunPod Template
 
-Use this with a RunPod image or template that already contains ComfyUI. The
-startup script installs this repository into `custom_nodes`, installs the Python
-requirements, and starts ComfyUI on port `8188`.
+Use this with RunPod's PyTorch image or a ComfyUI image you already trust. The
+startup script installs ComfyUI when needed, installs this repository into
+`custom_nodes`, installs the Python requirements, and starts ComfyUI on port
+`8188`.
 
 ## Console Settings
 
 Recommended Pod template values:
 
 ```text
-Container image: a ComfyUI-capable image you already use
+Container image: runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204
 Volume mount path: /workspace
 Expose HTTP ports: 8188
 Expose TCP ports: 22
@@ -21,6 +22,13 @@ If the image keeps ComfyUI somewhere other than `/workspace/ComfyUI`, set:
 
 ```text
 COMFYUI_ROOT=/path/to/ComfyUI
+```
+
+If the image already has ComfyUI and you do not want the script to install or
+update it, set:
+
+```text
+INSTALL_COMFYUI=0
 ```
 
 After the Pod starts, open:
@@ -37,15 +45,16 @@ custom_nodes/ComfyUI-AnimaRmbgWorkflow/example_workflows/anima_single_rmbg_trans
 
 ## Template JSON
 
-`pod-template.example.json` mirrors RunPod's REST template fields. Replace
-`YOUR_COMFYUI_IMAGE:TAG` with the actual ComfyUI image you want to run before
-creating the template.
+`pod-template.example.json` mirrors RunPod's REST template fields and uses
+`runpod/pytorch:1.0.7-cu1290-torch280-ubuntu2204`. You can replace `imageName`
+with a ComfyUI image you already use.
 
 ## Environment Variables
 
 `template.env.example` contains the supported variables. The important ones are:
 
 - `COMFYUI_ROOT`: set only when auto-detection cannot find ComfyUI.
+- `INSTALL_COMFYUI`: `1` clones ComfyUI into `/workspace/ComfyUI` when missing.
 - `START_COMFYUI`: `1` starts `main.py --listen 0.0.0.0 --port 8188`.
 - `RUN_BASE_START`: starts `/start.sh` from the base image in the background.
 - `INSTALL_WORKFLOW_ASSETS`: installs only the models and LoRAs referenced by
