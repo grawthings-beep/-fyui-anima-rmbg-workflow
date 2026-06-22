@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "workflow": "example_workflows/anima_single_regional_rmbg_transparent_workflow.json",
+  "assets": [
+    {
+      "id": "wai-anima-base",
+      "kind": "diffusion_model",
+      "filename": "waiANIMA_v10Base10.safetensors",
+      "path": "models/diffusion_models/waiANIMA_v10Base10.safetensors",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/waiANIMA_v10Base10.safetensors",
+      "min_bytes": 1073741824
+    },
+    {
+      "id": "qwen3-06b-base-text-encoder",
+      "kind": "text_encoder",
+      "filename": "qwen_3_06b_base.safetensors",
+      "path": "models/text_encoders/qwen_3_06b_base.safetensors",
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true",
+      "min_bytes": 104857600
+    },
+    {
+      "id": "qwen-image-vae",
+      "kind": "vae",
+      "filename": "qwen_image_vae.safetensors",
+      "path": "models/vae/qwen_image_vae.safetensors",
+      "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true",
+      "min_bytes": 10485760
+    },
+    {
+      "id": "anima-turbo",
+      "kind": "lora",
+      "filename": "anima-turbo-lora-v0.2.safetensors",
+      "path": "models/loras/anima-turbo-lora-v0.2.safetensors",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/anima-turbo-lora-v0.2.safetensors",
+      "min_bytes": 1048576
+    },
+    {
+      "id": "pixel-came",
+      "kind": "lora",
+      "filename": "pixel-AnimaB_V10-V1-CAME.safetensors",
+      "path": "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "url": "https://huggingface.co/uwgm/nikke-loras/resolve/main/pixel-AnimaB_V10-V1-CAME.safetensors",
+      "min_bytes": 1048576
+    },
+    {
+      "id": "anima-lllite-regional-controlnet",
+      "kind": "controlnet",
+      "filename": "anima-lllite-regional-exp-v3.safetensors",
+      "path": "models/controlnet/anima-lllite-regional-exp-v3.safetensors",
+      "url": "https://huggingface.co/Sen-sou/Anima-LLLite-Regional-Controlnet/resolve/main/anima-lllite-regional-exp-v3.safetensors?download=true",
+      "min_bytes": 41943040
+    }
+  ]
+}

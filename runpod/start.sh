@@ -47,6 +47,9 @@ PYTHON_BIN="$(find_python_bin)" || {
 CUSTOM_NODE_SOURCE="${CUSTOM_NODE_SOURCE:-/opt/anima-rmbg/custom_node}"
 CUSTOM_NODE_DIR_NAME="${CUSTOM_NODE_DIR_NAME:-ComfyUI-AnimaRmbgWorkflow}"
 CUSTOM_NODE_TARGET="${COMFYUI_DIR}/custom_nodes/${CUSTOM_NODE_DIR_NAME}"
+ANIMA_LLLITE_SOURCE="${ANIMA_LLLITE_SOURCE:-/opt/anima-rmbg/ComfyUI-Anima-LLLite}"
+ANIMA_LLLITE_DIR_NAME="${ANIMA_LLLITE_DIR_NAME:-ComfyUI-Anima-LLLite}"
+ANIMA_LLLITE_TARGET="${COMFYUI_DIR}/custom_nodes/${ANIMA_LLLITE_DIR_NAME}"
 COMFYUI_WORKFLOW_DIR="${COMFYUI_WORKFLOW_DIR:-${COMFYUI_DIR}/user/default/workflows}"
 
 if [[ "${INSTALL_CUSTOM_NODE:-1}" == "1" ]]; then
@@ -59,14 +62,28 @@ if [[ "${INSTALL_CUSTOM_NODE:-1}" == "1" ]]; then
   mkdir -p "${CUSTOM_NODE_TARGET}"
   cp -a "${CUSTOM_NODE_SOURCE}/." "${CUSTOM_NODE_TARGET}/"
 
-  WORKFLOW_SOURCE="${CUSTOM_NODE_TARGET}/example_workflows/anima_single_rmbg_transparent_workflow.json"
-  if [[ -f "${WORKFLOW_SOURCE}" ]]; then
-    mkdir -p "${COMFYUI_WORKFLOW_DIR}"
-    cp "${WORKFLOW_SOURCE}" \
-       "${COMFYUI_WORKFLOW_DIR}/anima_single_rmbg_transparent_workflow.json"
-    echo "Installed transparent RMBG workflow in ${COMFYUI_WORKFLOW_DIR}."
+  mkdir -p "${COMFYUI_WORKFLOW_DIR}"
+  for workflow_name in \
+    anima_single_rmbg_transparent_workflow.json \
+    anima_single_regional_rmbg_transparent_workflow.json; do
+    WORKFLOW_SOURCE="${CUSTOM_NODE_TARGET}/example_workflows/${workflow_name}"
+    if [[ -f "${WORKFLOW_SOURCE}" ]]; then
+      cp "${WORKFLOW_SOURCE}" "${COMFYUI_WORKFLOW_DIR}/${workflow_name}"
+      echo "Installed workflow ${workflow_name} in ${COMFYUI_WORKFLOW_DIR}."
+    else
+      echo "WARN: workflow was not found at ${WORKFLOW_SOURCE}."
+    fi
+  done
+fi
+
+if [[ "${INSTALL_ANIMA_LLLITE:-1}" == "1" ]]; then
+  if [[ -f "${ANIMA_LLLITE_SOURCE}/__init__.py" ]]; then
+    echo "Installing Anima LLLite custom node into ${ANIMA_LLLITE_TARGET}..."
+    rm -rf "${ANIMA_LLLITE_TARGET}"
+    mkdir -p "${ANIMA_LLLITE_TARGET}"
+    cp -a "${ANIMA_LLLITE_SOURCE}/." "${ANIMA_LLLITE_TARGET}/"
   else
-    echo "WARN: transparent RMBG workflow was not found at ${WORKFLOW_SOURCE}."
+    echo "WARN: Anima LLLite custom node was not found at ${ANIMA_LLLITE_SOURCE}."
   fi
 fi
 

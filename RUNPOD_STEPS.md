@@ -57,8 +57,9 @@ The workflow defaults to `briaai/RMBG-2.0` for background removal. Make sure the
 Hugging Face account behind `HF_TOKEN` has accepted the model terms; the model
 cache is reused from `/workspace/huggingface`.
 
-The workflow is installed into ComfyUI's normal Workflows list:
+The workflows are installed into ComfyUI's normal Workflows list:
 
 ```text
 anima_single_rmbg_transparent_workflow.json
+anima_single_regional_rmbg_transparent_workflow.json
 ```

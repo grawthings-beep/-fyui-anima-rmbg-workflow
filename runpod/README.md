@@ -4,9 +4,10 @@ This template follows the same Docker-first layout as
 `grawthings-beep/anima-image-runpod`.
 
 The image is based on `runpod/comfyui:latest`. It bakes the Anima RMBG custom
-node, background-removal dependency, workflow, and startup/download scripts into
-the container. Large model files are downloaded into the persistent RunPod
-volume at Pod startup, so later boots reuse `/workspace/comfyui/models`.
+node, the Anima LLLite custom node, background-removal dependency, workflows,
+and startup/download scripts into the container. Large model files are
+downloaded into the persistent RunPod volume at Pod startup, so later boots
+reuse `/workspace/comfyui/models`.
 
 ## GHCR Image
 
@@ -54,8 +55,8 @@ account behind `HF_TOKEN` has accepted the model terms.
 
 ## Model Layout
 
-Startup downloads only the model files used by the packaged transparent RMBG
-workflow:
+Startup downloads the model files used by the packaged transparent and regional
+RMBG workflows:
 
 ```text
 /workspace/comfyui/models/diffusion_models/waiANIMA_v10Base10.safetensors
@@ -63,6 +64,7 @@ workflow:
 /workspace/comfyui/models/vae/qwen_image_vae.safetensors
 /workspace/comfyui/models/loras/anima-turbo-lora-v0.2.safetensors
 /workspace/comfyui/models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors
+/workspace/comfyui/models/controlnet/anima-lllite-regional-exp-v3.safetensors
 ```
 
 The only LoRAs in the base manifest are:
@@ -76,9 +78,10 @@ anima/pixel-AnimaB_V10-V1-CAME.safetensors
 
 Open RunPod Connect for port `8188`.
 
-The startup script installs this custom node into ComfyUI and places the
-workflow in ComfyUI's normal Workflows list:
+The startup script installs this custom node and `ComfyUI-Anima-LLLite` into
+ComfyUI, then places the workflows in ComfyUI's normal Workflows list:
 
 ```text
 anima_single_rmbg_transparent_workflow.json
+anima_single_regional_rmbg_transparent_workflow.json
 ```

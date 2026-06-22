@@ -25,5 +25,5 @@
     "ARIA2_SPLITS": "16",
     "COMFYUI_ARGS": "--reserve-vram 3"
   },
-  "readme": "Docker image based on runpod/comfyui. Installs the Anima RMBG custom node and workflow, downloads only the WAI-ANIMA base, Qwen text encoder, Qwen image VAE, Anima Turbo LoRA, and Pixel CAME LoRA into /workspace/comfyui/models, then starts ComfyUI on port 8188."
+  "readme": "Docker image based on runpod/comfyui. Installs the Anima RMBG and Anima LLLite custom nodes, installs transparent and regional workflows, downloads the WAI-ANIMA base, Qwen text encoder, Qwen image VAE, Anima Turbo LoRA, Pixel CAME LoRA, and Anima LLLite regional ControlNet into /workspace/comfyui/models, then starts ComfyUI on port 8188."
 }

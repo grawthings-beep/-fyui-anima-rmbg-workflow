@@ -8,10 +8,20 @@ MANIFEST_PATH = (
     / "config"
     / "workflow-assets.json"
 )
+REGIONAL_MANIFEST_PATH = (
+    Path(__file__).parents[1]
+    / "config"
+    / "regional-workflow-assets.json"
+)
 WORKFLOW_PATH = (
     Path(__file__).parents[1]
     / "example_workflows"
     / "anima_single_rmbg_transparent_workflow.json"
+)
+REGIONAL_WORKFLOW_PATH = (
+    Path(__file__).parents[1]
+    / "example_workflows"
+    / "anima_single_regional_rmbg_transparent_workflow.json"
 )
 
 
@@ -42,6 +52,34 @@ class WorkflowAssetTests(unittest.TestCase):
             self.assertIn(filename, workflow_text)
 
     def test_manifest_entries_have_download_urls(self):
+        self.assertTrue(all(entry["url"] for entry in self.manifest["assets"]))
+
+
+class RegionalWorkflowAssetTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.manifest = json.loads(REGIONAL_MANIFEST_PATH.read_text(encoding="utf-8"))
+        cls.workflow = json.loads(REGIONAL_WORKFLOW_PATH.read_text(encoding="utf-8"))
+
+    def test_regional_manifest_adds_controlnet_asset(self):
+        controlnet_paths = [
+            entry["path"]
+            for entry in self.manifest["assets"]
+            if entry["kind"] == "controlnet"
+        ]
+
+        self.assertEqual(
+            controlnet_paths,
+            ["models/controlnet/anima-lllite-regional-exp-v3.safetensors"],
+        )
+
+    def test_regional_manifest_covers_workflow_model_widgets(self):
+        workflow_text = json.dumps(self.workflow, ensure_ascii=False)
+        filenames = {entry["filename"] for entry in self.manifest["assets"]}
+        for filename in filenames:
+            self.assertIn(filename, workflow_text)
+
+    def test_regional_manifest_entries_have_download_urls(self):
         self.assertTrue(all(entry["url"] for entry in self.manifest["assets"]))
 
 

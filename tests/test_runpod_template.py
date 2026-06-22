@@ -35,6 +35,8 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertIn("pip install", dockerfile)
         self.assertIn("U2NET_HOME=/root/.u2net", dockerfile)
         self.assertIn("new_session('isnet-general-use')", dockerfile)
+        self.assertIn("ANIMA_LLLITE_REPO", dockerfile)
+        self.assertIn("ComfyUI-Anima-LLLite", dockerfile)
         self.assertIn('CMD ["/opt/anima-rmbg/custom_node/runpod/start.sh"]', dockerfile)
         self.assertIn("rembg[cpu]", requirements)
         self.assertIn("transformers", requirements)
@@ -46,6 +48,8 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertTrue(script.startswith("#!/usr/bin/env bash\n"))
         self.assertIn("find_comfyui_dir", script)
         self.assertIn("extra_model_paths.yaml", script)
+        self.assertIn("ANIMA_LLLITE_SOURCE", script)
+        self.assertIn("anima_single_regional_rmbg_transparent_workflow.json", script)
         self.assertIn("download_models.py", script)
         self.assertNotIn("git clone --depth 1 --branch", script)
 
@@ -81,6 +85,16 @@ class RunPodTemplateTest(unittest.TestCase):
                 "models/loras/anima-turbo-lora-v0.2.safetensors",
                 "models/loras/anima/pixel-AnimaB_V10-V1-CAME.safetensors",
             ],
+        )
+
+        controlnet_paths = [
+            entry["path"]
+            for entry in manifest["models"]
+            if entry["path"].startswith("models/controlnet/")
+        ]
+        self.assertEqual(
+            controlnet_paths,
+            ["models/controlnet/anima-lllite-regional-exp-v3.safetensors"],
         )
 
 

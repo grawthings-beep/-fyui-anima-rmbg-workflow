@@ -30,12 +30,13 @@ def main():
         model_root / "models" / "diffusion_models",
         model_root / "models" / "text_encoders",
         model_root / "models" / "vae",
+        model_root / "models" / "controlnet",
         model_root / "models" / "loras",
         model_root / "models" / "loras" / "anima",
+        comfyui_dir / "custom_nodes" / "ComfyUI-Anima-LLLite",
     ]:
         print(f"path: {path} exists={path.exists()}")
 
 
 if __name__ == "__main__":
     main()
-

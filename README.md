@@ -3,18 +3,20 @@
 ComfyUI custom nodes and workflows for generating Anima pixel-style sprites,
 removing the background, and saving transparent PNG batches.
 
-This repo is based on `comfyui-anima-variation-batch`, with two added nodes:
+This repo is based on `comfyui-anima-variation-batch`, with added helper nodes:
 
 - `Anima Remove Background`
+- `Anima Regional Control Mask`
 - `Anima Save Transparent Batch ZIP`
 
-The packaged workflow is:
+The packaged workflows are:
 
 ```text
 example_workflows/anima_single_rmbg_transparent_workflow.json
+example_workflows/anima_single_regional_rmbg_transparent_workflow.json
 ```
 
-It is configured from the supplied workflow and adds:
+The transparent workflow is configured from the supplied workflow and adds:
 
 ```text
 VAEDecode
@@ -43,10 +45,20 @@ cd ComfyUI-AnimaRmbgWorkflow
 pip install -r requirements.txt
 ```
 
+For the regional ControlNet workflow, install the Anima LLLite node as another
+ComfyUI custom node:
+
+```bash
+cd /path/to/ComfyUI/custom_nodes
+git clone https://github.com/kohya-ss/ComfyUI-Anima-LLLite.git \
+  ComfyUI-Anima-LLLite
+```
+
 Restart ComfyUI, then load:
 
 ```text
 example_workflows/anima_single_rmbg_transparent_workflow.json
+example_workflows/anima_single_regional_rmbg_transparent_workflow.json
 ```
 
 ## RunPod
@@ -91,6 +103,30 @@ COMFYUI_ARGS=--reserve-vram 3
 
 See `runpod/README.md`, `runpod/pod-template.example.json`, and
 `runpod/template.env.example`.
+
+## Anima Regional ControlNet
+
+The regional workflow uses
+`Sen-sou/Anima-LLLite-Regional-Controlnet` through
+`kohya-ss/ComfyUI-Anima-LLLite`'s `AnimaLLLiteApply` node. The LLLite weight is:
+
+```text
+models/controlnet/anima-lllite-regional-exp-v3.safetensors
+```
+
+RunPod downloads it automatically from `config/anima-rmbg-models.json`. For a
+local ComfyUI install, download the regional workflow assets:
+
+```bash
+python scripts/download_workflow_assets.py \
+  --manifest config/regional-workflow-assets.json \
+  --root /path/to/ComfyUI
+```
+
+`Anima Regional Control Mask` creates a simple RGB region mask that can be
+connected directly to `AnimaLLLiteApply`. White is the neutral background; solid
+colors define regions. The model receives the color mask as conditioning only,
+so use spatial prompt wording such as `character on the left, prop on the right`.
 
 ## Background Removal
 
@@ -161,10 +197,25 @@ It lists only the files used by the packaged workflow:
 - `anima-turbo-lora-v0.2.safetensors`
 - `anima/pixel-AnimaB_V10-V1-CAME.safetensors`
 
+The regional workflow uses:
+
+```text
+config/regional-workflow-assets.json
+```
+
+That manifest adds:
+
+```text
+models/controlnet/anima-lllite-regional-exp-v3.safetensors
+```
+
 List them:
 
 ```bash
 python scripts/download_workflow_assets.py --list
+python scripts/download_workflow_assets.py \
+  --manifest config/regional-workflow-assets.json \
+  --list
 ```
 
 Install into a ComfyUI root:
@@ -186,7 +237,8 @@ python scripts/download_workflow_assets.py \
 RunPod uses `config/anima-rmbg-models.json`, which follows the same manifest
 shape as `anima-image-runpod`. The base manifest intentionally includes only two
 LoRAs: `anima-turbo-lora-v0.2.safetensors` and
-`anima/pixel-AnimaB_V10-V1-CAME.safetensors`.
+`anima/pixel-AnimaB_V10-V1-CAME.safetensors`; the regional ControlNet is stored
+separately under `models/controlnet/`.
 
 ## Regenerate The Workflow
 

@@ -25,6 +25,16 @@ from .variation import (
 _REMBG_SESSIONS = {}
 _RMBG2_MODELS = {}
 _BEN2_MODELS = {}
+_REGIONAL_MASK_COLORS = {
+    "white": (255, 255, 255),
+    "black": (0, 0, 0),
+    "red": (255, 0, 0),
+    "green": (0, 255, 0),
+    "blue": (0, 0, 255),
+    "cyan": (0, 255, 255),
+    "magenta": (255, 0, 255),
+    "yellow": (255, 255, 0),
+}
 
 
 def _is_unresolved_template(value):
@@ -44,6 +54,31 @@ def _pil_rgb_to_tensor(image):
 def _mask_to_tensor(mask):
     array = np.asarray(mask.convert("L")).astype(np.float32) / 255.0
     return torch.from_numpy(array)
+
+
+def _parse_rgb_color(value):
+    text = str(value or "").strip().lower()
+    if text in _REGIONAL_MASK_COLORS:
+        return _REGIONAL_MASK_COLORS[text]
+
+    if text.startswith("#"):
+        text = text[1:]
+    if len(text) == 3 and all(character in "0123456789abcdef" for character in text):
+        text = "".join(character * 2 for character in text)
+    if len(text) == 6 and all(character in "0123456789abcdef" for character in text):
+        return tuple(int(text[index : index + 2], 16) for index in (0, 2, 4))
+
+    if "," in text:
+        parts = [part.strip() for part in text.split(",")]
+        if len(parts) == 3:
+            try:
+                return tuple(max(0, min(255, int(part))) for part in parts)
+            except ValueError:
+                pass
+
+    raise ValueError(
+        f"unsupported RGB color {value!r}; use a basic name, #rrggbb, or r,g,b"
+    )
 
 
 def _checkerboard(size, cell=24):
@@ -920,6 +955,142 @@ class AnimaRemoveBackground:
         return (torch.stack(previews, dim=0), torch.stack(masks, dim=0))
 
 
+class AnimaRegionalControlMask:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "layout": (
+                    ["left_right", "top_bottom", "three_vertical", "center", "blank"],
+                    {
+                        "default": "left_right",
+                    },
+                ),
+                "width": (
+                    "INT",
+                    {
+                        "default": 1152,
+                        "min": 64,
+                        "max": 8192,
+                        "step": 8,
+                    },
+                ),
+                "height": (
+                    "INT",
+                    {
+                        "default": 1536,
+                        "min": 64,
+                        "max": 8192,
+                        "step": 8,
+                    },
+                ),
+                "margin": (
+                    "INT",
+                    {
+                        "default": 64,
+                        "min": 0,
+                        "max": 2048,
+                        "step": 8,
+                    },
+                ),
+                "background_color": (
+                    "STRING",
+                    {
+                        "default": "#ffffff",
+                    },
+                ),
+                "region_a_color": (
+                    "STRING",
+                    {
+                        "default": "#ff0000",
+                    },
+                ),
+                "region_b_color": (
+                    "STRING",
+                    {
+                        "default": "#0000ff",
+                    },
+                ),
+                "region_c_color": (
+                    "STRING",
+                    {
+                        "default": "#00ff00",
+                    },
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("regional_mask",)
+    FUNCTION = "build"
+    CATEGORY = "Anima/control"
+    DESCRIPTION = (
+        "Creates a simple RGB region mask for Anima LLLite Regional ControlNet. "
+        "White is treated as the neutral background; solid colors define regions."
+    )
+
+    def build(
+        self,
+        layout,
+        width,
+        height,
+        margin,
+        background_color,
+        region_a_color,
+        region_b_color,
+        region_c_color,
+    ):
+        width = int(width)
+        height = int(height)
+        margin = max(0, min(int(margin), min(width, height) // 3))
+        gap = max(2, min(width, height) // 64)
+
+        background = _parse_rgb_color(background_color)
+        region_a = _parse_rgb_color(region_a_color)
+        region_b = _parse_rgb_color(region_b_color)
+        region_c = _parse_rgb_color(region_c_color)
+
+        image = Image.new("RGB", (width, height), background)
+        draw = ImageDraw.Draw(image)
+
+        left = margin
+        top = margin
+        right = width - margin - 1
+        bottom = height - margin - 1
+        if left >= right or top >= bottom:
+            return (_pil_rgb_to_tensor(image).unsqueeze(0),)
+
+        if layout == "left_right":
+            middle = (left + right) // 2
+            draw.rectangle((left, top, middle - gap, bottom), fill=region_a)
+            draw.rectangle((middle + gap, top, right, bottom), fill=region_b)
+        elif layout == "top_bottom":
+            middle = (top + bottom) // 2
+            draw.rectangle((left, top, right, middle - gap), fill=region_a)
+            draw.rectangle((left, middle + gap, right, bottom), fill=region_b)
+        elif layout == "three_vertical":
+            usable = right - left + 1
+            column = max(1, (usable - 2 * gap) // 3)
+            x1 = left
+            x2 = min(right, x1 + column - 1)
+            x3 = min(right, x2 + gap + 1)
+            x4 = min(right, x3 + column - 1)
+            x5 = min(right, x4 + gap + 1)
+            draw.rectangle((x1, top, x2, bottom), fill=region_a)
+            draw.rectangle((x3, top, x4, bottom), fill=region_b)
+            draw.rectangle((x5, top, right, bottom), fill=region_c)
+        elif layout == "center":
+            center_width = max(1, (right - left + 1) // 2)
+            center_height = max(1, (bottom - top + 1) * 3 // 4)
+            x1 = left + (right - left + 1 - center_width) // 2
+            y1 = top + (bottom - top + 1 - center_height) // 2
+            x2 = x1 + center_width - 1
+            y2 = y1 + center_height - 1
+            draw.rectangle((x1, y1, x2, y2), fill=region_a)
+
+        return (_pil_rgb_to_tensor(image).unsqueeze(0),)
+
+
 class AnimaSaveTransparentBatchZip:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
@@ -1073,6 +1244,7 @@ NODE_CLASS_MAPPINGS = {
     "AnimaFlexibleVariationBatchSampler": AnimaFlexibleVariationBatchSampler,
     "AnimaSaveBatchZip": AnimaSaveBatchZip,
     "AnimaRemoveBackground": AnimaRemoveBackground,
+    "AnimaRegionalControlMask": AnimaRegionalControlMask,
     "AnimaSaveTransparentBatchZip": AnimaSaveTransparentBatchZip,
 }
 
@@ -1082,5 +1254,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "AnimaFlexibleVariationBatchSampler": "Anima Flexible Variation Batch Sampler",
     "AnimaSaveBatchZip": "Anima Save Batch ZIP",
     "AnimaRemoveBackground": "Anima Remove Background",
+    "AnimaRegionalControlMask": "Anima Regional Control Mask",
     "AnimaSaveTransparentBatchZip": "Anima Save Transparent Batch ZIP",
 }

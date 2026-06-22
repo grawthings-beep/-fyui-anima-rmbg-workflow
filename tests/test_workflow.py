@@ -10,6 +10,9 @@ WORKFLOW_PATH = (
 TRANSPARENT_WORKFLOW_PATH = (
     ROOT / "example_workflows" / "anima_single_rmbg_transparent_workflow.json"
 )
+REGIONAL_WORKFLOW_PATH = (
+    ROOT / "example_workflows" / "anima_single_regional_rmbg_transparent_workflow.json"
+)
 
 
 class WorkflowTests(unittest.TestCase):
@@ -187,6 +190,84 @@ class TransparentWorkflowTests(unittest.TestCase):
                 (remover["id"], 1, 1, "MASK"),
             ],
         )
+
+
+class RegionalWorkflowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.workflow = json.loads(REGIONAL_WORKFLOW_PATH.read_text(encoding="utf-8"))
+
+    def test_regional_control_nodes_are_present(self):
+        node_types = {node["type"] for node in self.workflow["nodes"]}
+        self.assertIn("AnimaRegionalControlMask", node_types)
+        self.assertIn("AnimaLLLiteApply", node_types)
+        self.assertIn("AnimaRemoveBackground", node_types)
+        self.assertIn("AnimaSaveTransparentBatchZip", node_types)
+
+    def test_links_reference_existing_nodes_and_sockets(self):
+        nodes = {node["id"]: node for node in self.workflow["nodes"]}
+        link_ids = set()
+
+        for link_id, source_id, source_slot, target_id, target_slot, _type in (
+            self.workflow["links"]
+        ):
+            self.assertNotIn(link_id, link_ids)
+            link_ids.add(link_id)
+            self.assertIn(source_id, nodes)
+            self.assertIn(target_id, nodes)
+            self.assertLess(source_slot, len(nodes[source_id]["outputs"]))
+            self.assertLess(target_slot, len(nodes[target_id]["inputs"]))
+
+    def test_lllite_uses_regional_controlnet_weight(self):
+        lllite = next(
+            node for node in self.workflow["nodes"] if node["type"] == "AnimaLLLiteApply"
+        )
+
+        self.assertEqual(
+            lllite["widgets_values"],
+            [
+                "anima-lllite-regional-exp-v3.safetensors",
+                1,
+                0,
+                0.55,
+                True,
+            ],
+        )
+
+    def test_regional_mask_feeds_lllite_before_sampler(self):
+        mask = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "AnimaRegionalControlMask"
+        )
+        lllite = next(
+            node for node in self.workflow["nodes"] if node["type"] == "AnimaLLLiteApply"
+        )
+        turbo_lora = next(
+            node
+            for node in self.workflow["nodes"]
+            if node["type"] == "LoraLoaderModelOnly"
+            and node["widgets_values"][0] == "anima-turbo-lora-v0.2.safetensors"
+        )
+        sampler = next(
+            node for node in self.workflow["nodes"] if node["type"] == "KSampler"
+        )
+
+        incoming_to_lllite = [
+            link for link in self.workflow["links"] if link[3] == lllite["id"]
+        ]
+        self.assertEqual(
+            sorted((link[1], link[2], link[4], link[5]) for link in incoming_to_lllite),
+            [
+                (turbo_lora["id"], 0, 0, "MODEL"),
+                (mask["id"], 0, 1, "IMAGE"),
+            ],
+        )
+
+        sampler_model_link = next(
+            link for link in self.workflow["links"] if link[0] == sampler["inputs"][0]["link"]
+        )
+        self.assertEqual(sampler_model_link[1:5], [lllite["id"], 0, sampler["id"], 0])
 
 
 if __name__ == "__main__":

@@ -17,3 +17,13 @@ license terms.
 
 See the [official Anima model card](https://huggingface.co/circlestone-labs/Anima)
 before using or distributing model derivatives.
+
+## Anima LLLite Regional ControlNet
+
+The regional workflow uses
+[kohya-ss/ComfyUI-Anima-LLLite](https://github.com/kohya-ss/ComfyUI-Anima-LLLite)
+and
+[Sen-sou/Anima-LLLite-Regional-Controlnet](https://huggingface.co/Sen-sou/Anima-LLLite-Regional-Controlnet),
+which are licensed under Apache-2.0.
+
+This repository does not distribute the LLLite regional ControlNet weights.

@@ -59,7 +59,15 @@
         "Authorization": "Bearer ${HF_TOKEN}"
       },
       "min_bytes": 1048576
+    },
+    {
+      "name": "Anima LLLite Regional ControlNet",
+      "enabled": true,
+      "required": true,
+      "method": "curl",
+      "url": "https://huggingface.co/Sen-sou/Anima-LLLite-Regional-Controlnet/resolve/main/anima-lllite-regional-exp-v3.safetensors?download=true",
+      "path": "models/controlnet/anima-lllite-regional-exp-v3.safetensors",
+      "min_bytes": 41943040
     }
   ]
 }
-
