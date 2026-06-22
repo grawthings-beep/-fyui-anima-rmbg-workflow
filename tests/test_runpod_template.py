@@ -50,6 +50,7 @@ class RunPodTemplateTest(unittest.TestCase):
         self.assertIn("extra_model_paths.yaml", script)
         self.assertIn("ANIMA_LLLITE_SOURCE", script)
         self.assertIn("anima_single_regional_rmbg_transparent_workflow.json", script)
+        self.assertIn("REFRESH_MODEL_MANIFEST", script)
         self.assertIn("download_models.py", script)
         self.assertNotIn("git clone --depth 1 --branch", script)
 

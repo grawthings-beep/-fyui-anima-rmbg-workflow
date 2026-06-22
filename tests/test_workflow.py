@@ -224,6 +224,19 @@ class RegionalWorkflowTests(unittest.TestCase):
         )
 
         self.assertEqual(
+            [node_input["name"] for node_input in lllite["inputs"]],
+            [
+                "model",
+                "lllite_name",
+                "image",
+                "strength",
+                "start_percent",
+                "end_percent",
+                "preserve_wrapper",
+                "mask",
+            ],
+        )
+        self.assertEqual(
             lllite["widgets_values"],
             [
                 "anima-lllite-regional-exp-v3.safetensors",
@@ -260,7 +273,7 @@ class RegionalWorkflowTests(unittest.TestCase):
             sorted((link[1], link[2], link[4], link[5]) for link in incoming_to_lllite),
             [
                 (turbo_lora["id"], 0, 0, "MODEL"),
-                (mask["id"], 0, 1, "IMAGE"),
+                (mask["id"], 0, 2, "IMAGE"),
             ],
         )
 

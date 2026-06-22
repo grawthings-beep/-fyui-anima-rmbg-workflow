@@ -592,19 +592,6 @@
           "link": 93
         },
         {
-          "localized_name": "image",
-          "name": "image",
-          "type": "IMAGE",
-          "link": 92
-        },
-        {
-          "localized_name": "mask",
-          "name": "mask",
-          "shape": 7,
-          "type": "MASK",
-          "link": null
-        },
-        {
           "localized_name": "lllite_name",
           "name": "lllite_name",
           "type": "COMBO",
@@ -612,6 +599,12 @@
             "name": "lllite_name"
           },
           "link": null
+        },
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 92
         },
         {
           "localized_name": "strength",
@@ -647,6 +640,13 @@
           "widget": {
             "name": "preserve_wrapper"
           },
+          "link": null
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
           "link": null
         }
       ],
@@ -784,7 +784,7 @@
       51,
       0,
       52,
-      1,
+      2,
       "IMAGE"
     ],
     [

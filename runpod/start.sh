@@ -158,8 +158,12 @@ request = urllib.request.Request(url, headers={"User-Agent": "runpod-anima-rmbg-
 with urllib.request.urlopen(request, timeout=60) as response:
     output.write_bytes(response.read())
 PY
-elif [[ ! -f "${MODEL_MANIFEST}" && -f "${CUSTOM_NODE_TARGET}/config/anima-rmbg-models.json" ]]; then
-  cp "${CUSTOM_NODE_TARGET}/config/anima-rmbg-models.json" "${MODEL_MANIFEST}"
+elif [[ -f "${CUSTOM_NODE_TARGET}/config/anima-rmbg-models.json" ]]; then
+  if [[ "${REFRESH_MODEL_MANIFEST:-1}" == "1" || ! -f "${MODEL_MANIFEST}" ]]; then
+    cp "${CUSTOM_NODE_TARGET}/config/anima-rmbg-models.json" "${MODEL_MANIFEST}"
+  fi
+elif [[ ! -f "${MODEL_MANIFEST}" ]]; then
+  echo "WARN: base model manifest was not found at ${MODEL_MANIFEST}."
 fi
 
 if [[ -n "${EXTRA_MODEL_MANIFEST_JSON:-}" ]]; then
